@@ -7,10 +7,8 @@ import 'admin/admin_dashboard_screen.dart'; // To navigate to Admin
 import 'package:isar/isar.dart';
 import '../../main.dart'; // Import main.dart to access the global 'isar' instance
 import '../../data/collections/usuario.dart'; // Import the Usuario collection
+import '../../utils/password_hasher.dart'; // Import the hasher
 // --- End ISAR Imports ---
-
-import 'package:crypto/crypto.dart';
-import 'dart:convert';
 
 // --- REMOVE Old Drift/Provider Imports ---
 import 'package:provider/provider.dart';
@@ -47,16 +45,15 @@ Future<void> _login() async {
     try {
       final username = _userController.text;
       final password = _passwordController.text;
-      final bytes = utf8.encode(password);
-      final passwordHash = sha256.convert(bytes).toString();
 
+      // Find user by username first
       final usuario = await isar.usuarios
           .filter()
           .usernameEqualTo(username)
-          .passwordHashEqualTo(passwordHash)
           .findFirst();
 
-      if (usuario != null) {
+      // Now, verify the password using the new hasher
+      if (usuario != null && PasswordHasher.verifyPassword(password, usuario.salt, usuario.passwordHash)) {
         // 2. Llama al AuthProvider para guardar la sesión
         await authProvider.login(usuario); // Esto carga el rol
 

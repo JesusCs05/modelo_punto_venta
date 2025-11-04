@@ -15,6 +15,8 @@ class Usuario {
 
   late String passwordHash;
 
+  late String salt;
+
   // Link to Rol
   final rol = IsarLink<Rol>();
 }

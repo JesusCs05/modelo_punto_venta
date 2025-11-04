@@ -48,6 +48,7 @@ dependencies:
   #dependencias para imprimir tickets en pdf
   pdf: ^3.11.3
   printing: ^5.14.2
+  pointycastle: ^3.9.1
 
 dev_dependencies:
   flutter_test:

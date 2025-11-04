@@ -14,8 +14,7 @@ import 'data/collections/movimiento_inventario.dart';
 // --- End Collection Imports ---
 import 'presentation/screens/login_screen.dart';
 import 'presentation/theme/app_colors.dart';
-import 'package:crypto/crypto.dart'; // For seeding
-import 'dart:convert'; // For seeding
+import 'utils/password_hasher.dart'; // Import the new hasher
 import 'package:provider/provider.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/turno_provider.dart';
@@ -105,14 +104,14 @@ Future<void> _seedDatabase() async {
         .usernameEqualTo('admin')
         .findFirst();
     if (adminUserExists == null) {
-      final password = 'admin';
-      final bytes = utf8.encode(password);
-      final passwordHash = sha256.convert(bytes).toString();
+      // Use the new PasswordHasher utility
+      final hashedPassword = PasswordHasher.hashPassword('admin');
 
       final adminUser = Usuario()
         ..nombre = 'Admin Principal'
         ..username = 'admin'
-        ..passwordHash = passwordHash;
+        ..passwordHash = hashedPassword['hash']!
+        ..salt = hashedPassword['salt']!;
 
       await isar.usuarios.put(adminUser);
       // Link the role AFTER putting the user
