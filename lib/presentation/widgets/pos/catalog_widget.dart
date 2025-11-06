@@ -237,7 +237,7 @@ class _ProductGridItem extends StatelessWidget {
             
             // Texto del producto
             Container(
-              color: Colors.black.withOpacity(0.5), // Fondo oscuro para legibilidad
+              color: Colors.black.withValues(alpha: 128), // Fondo oscuro para legibilidad
               width: double.infinity,
               padding: const EdgeInsets.all(4.0),
               child: Text(

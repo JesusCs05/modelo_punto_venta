@@ -5,10 +5,6 @@ import '../../theme/app_colors.dart';
 import 'package:provider/provider.dart';
 import '../../providers/cart_provider.dart';
 import 'package:intl/intl.dart';
-import 'package:pdf/pdf.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:printing/printing.dart';
-import '../../models/cart_item_model.dart'; // <<< Importa el CartItem
 
 enum CobroResultado { exitoso, cancelado }
 
@@ -39,10 +35,7 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
   double _cambio = 0.0;
   final _efectivoController = TextEditingController();
   bool _isSaving = false;
-
-  // --- 1. AÑADIR CONTROLADOR PARA LA REFERENCIA ---
   final _referenciaController = TextEditingController();
-
   final _currencyFormat = NumberFormat.currency(locale: 'es_MX', symbol: '\$');
 
   @override
@@ -51,14 +44,14 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
     _efectivoController.addListener(_calcularCambio);
     _referenciaController.addListener(() {
       setState(() {});
-    }); // Para refrescar el botón
+    });
   }
 
   @override
   void dispose() {
     _efectivoController.removeListener(_calcularCambio);
     _efectivoController.dispose();
-    _referenciaController.dispose(); // <<< AÑADIR DISPOSE
+    _referenciaController.dispose();
     super.dispose();
   }
 
@@ -81,23 +74,13 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
     final currentContext = context;
 
     try {
-      // --- 2. PASAR LA REFERENCIA ---
-      // (Será null si el método es 'Efectivo' y el campo está oculto)
       final referencia = _metodoPago == 'Tarjeta'
           ? _referenciaController.text
           : null;
       await cart.finalizarVenta(_metodoPago, referencia);
-      // --- FIN MODIFICACIÓN ---
 
       if (!currentContext.mounted) return;
       Navigator.of(currentContext).pop(CobroResultado.exitoso);
-
-      final imprimir = await _mostrarOpcionImprimir(currentContext);
-      if (!currentContext.mounted) return;
-
-      if (imprimir ?? false) {
-        await _imprimirTicket(currentContext);
-      }
     } catch (e) {
       if (!mounted) return;
       setState(() {
@@ -112,239 +95,14 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
     }
   }
 
-  // ... (_mostrarOpcionImprimir y lógica de PDF no cambian)...
-  Future<bool?> _mostrarOpcionImprimir(BuildContext context) {
-    return showDialog<bool>(
-      context: context,
-      barrierDismissible: false,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Venta Finalizada'),
-        content: const Text('¿Desea imprimir el ticket para el cliente?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text(
-              'No',
-              style: TextStyle(color: AppColors.secondary),
-            ),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.textInverted,
-            ),
-            child: const Text('Sí, Imprimir'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _imprimirTicket(BuildContext context) async {
-    if (!mounted) return;
-    final cart = context.read<CartProvider>();
-    final items = cart.lastSaleItems;
-    final total = cart.lastSaleTotal;
-    final cajero = cart.lastSaleUser?.nombre ?? 'N/A';
-
-    if (items.isEmpty) {
-      debugPrint("No hay items en la última venta para imprimir.");
-      return;
-    }
-    final Uint8List pdfData = await _generateTicketPdf(
-      items,
-      total,
-      cajero,
-      cart,
-    );
-    try {
-      await Printing.layoutPdf(
-        onLayout: (PdfPageFormat format) async => pdfData,
-        name: 'Ticket_Venta_${DateTime.now().millisecondsSinceEpoch}',
-      );
-    } catch (e) {
-      debugPrint("Error al imprimir: $e");
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error al imprimir: $e'),
-            backgroundColor: AppColors.accentDanger,
-          ),
-        );
-      }
-    }
-  }
-
-  Future<Uint8List> _generateTicketPdf(
-    List<CartItem> items,
-    double total,
-    String cajero,
-    CartProvider cart,
-  ) async {
-    final pdf = pw.Document();
-    const double ticketWidthPoints = 80 * (72 / 25.4);
-    const double marginPoints = 3 * (72 / 25.4);
-
-    pdf.addPage(
-      pw.Page(
-        pageFormat: PdfPageFormat(
-          ticketWidthPoints,
-          double.infinity,
-          marginAll: marginPoints,
-        ),
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              pw.Center(
-                child: pw.Text(
-                  'Depósito de Cerveza',
-                  style: pw.TextStyle(
-                    fontWeight: pw.FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-              ),
-              pw.Center(
-                child: pw.Text(
-                  'Ticket de Venta',
-                  style: pw.TextStyle(fontSize: 10),
-                ),
-              ),
-              pw.SizedBox(height: 10),
-              pw.Text(
-                'Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
-                style: pw.TextStyle(fontSize: 8),
-              ),
-              pw.Text('Cajero: $cajero', style: pw.TextStyle(fontSize: 8)),
-              pw.SizedBox(height: 5),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-                children: [
-                  pw.Expanded(
-                    flex: 3,
-                    child: pw.Text(
-                      'Producto',
-                      style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold,
-                        fontSize: 8,
-                      ),
-                    ),
-                  ),
-                  pw.Expanded(
-                    flex: 1,
-                    child: pw.Text(
-                      'Cant.',
-                      style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold,
-                        fontSize: 8,
-                      ),
-                      textAlign: pw.TextAlign.right,
-                    ),
-                  ),
-                  pw.Expanded(
-                    flex: 2,
-                    child: pw.Text(
-                      'Subtotal',
-                      style: pw.TextStyle(
-                        fontWeight: pw.FontWeight.bold,
-                        fontSize: 8,
-                      ),
-                      textAlign: pw.TextAlign.right,
-                    ),
-                  ),
-                ],
-              ),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
-              pw.ListView.builder(
-                itemCount: items.length,
-                itemBuilder: (context, index) {
-                  final item = items[index];
-                  return pw.Padding(
-                    padding: const pw.EdgeInsets.symmetric(vertical: 2),
-                    child: pw.Row(
-                      children: [
-                        pw.Expanded(
-                          flex: 3,
-                          child: pw.Text(
-                            item.producto.nombre,
-                            style: pw.TextStyle(fontSize: 8),
-                          ),
-                        ),
-                        pw.Expanded(
-                          flex: 1,
-                          child: pw.Text(
-                            item.cantidad.toString(),
-                            style: pw.TextStyle(fontSize: 8),
-                            textAlign: pw.TextAlign.right,
-                          ),
-                        ),
-                        pw.Expanded(
-                          flex: 2,
-                          child: pw.Text(
-                            _currencyFormat.format(
-                              cart.getSubtotalForItem(item),
-                            ),
-                            style: pw.TextStyle(fontSize: 8),
-                            textAlign: pw.TextAlign.right,
-                          ),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-              pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
-              pw.SizedBox(height: 5),
-              pw.Row(
-                mainAxisAlignment: pw.MainAxisAlignment.end,
-                children: [
-                  pw.Text(
-                    'TOTAL: ',
-                    style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                  pw.Text(
-                    _currencyFormat.format(total),
-                    style: pw.TextStyle(
-                      fontWeight: pw.FontWeight.bold,
-                      fontSize: 12,
-                    ),
-                  ),
-                ],
-              ),
-              pw.SizedBox(height: 10),
-              pw.Center(
-                child: pw.Text(
-                  '¡Gracias por su compra!',
-                  style: pw.TextStyle(
-                    fontSize: 9,
-                    fontStyle: pw.FontStyle.italic,
-                  ),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-    return pdf.save();
-  }
-
   @override
   Widget build(BuildContext context) {
-    // --- 3. LÓGICA PARA HABILITAR/DESHABILITAR EL BOTÓN DE PAGO ---
     bool pagoInvalidoEfectivo =
         (_metodoPago == 'Efectivo' && _pagaCon < widget.totalAPagar);
     bool pagoInvalidoTarjeta =
         (_metodoPago == 'Tarjeta' && _referenciaController.text.isEmpty);
     bool deshabilitarBoton =
         _isSaving || pagoInvalidoEfectivo || pagoInvalidoTarjeta;
-    // --- FIN LÓGICA ---
 
     return AlertDialog(
       backgroundColor: AppColors.cardBackground,
@@ -357,7 +115,6 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            // ... (Total a Pagar, sin cambios) ...
             Text(
               'Total a Pagar:',
               style: TextStyle(fontSize: 18, color: AppColors.textPrimary),
@@ -380,12 +137,10 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
             ),
             const SizedBox(height: 24),
 
-            // --- 4. MOSTRAR CAMPO DE REFERENCIA SI ES TARJETA ---
             if (_metodoPago == 'Tarjeta')
               _buildLogicaTarjeta()
             else
               _buildLogicaEfectivo(),
-            // --- FIN MODIFICACIÓN ---
           ],
         ),
       ),
@@ -406,7 +161,6 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.textInverted,
             ),
-            // --- 5. USAR LA NUEVA LÓGICA DE HABILITACIÓN ---
             onPressed: deshabilitarBoton ? null : _finalizarVenta,
             child: _isSaving
                 ? const CircularProgressIndicator(color: AppColors.textInverted)
@@ -421,7 +175,6 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
   }
 
   Widget _buildMetodoPagoBoton(String metodo, IconData icon) {
-    // ... (Sin cambios) ...
     final bool seleccionado = _metodoPago == metodo;
     return Expanded(
       child: SizedBox(
@@ -433,8 +186,8 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
             setState(() {
               _metodoPago = metodo;
               _efectivoController.clear();
-              _referenciaController.clear(); // Limpia la referencia al cambiar
-              _calcularCambio(); // Recalcula (pone cambio en 0)
+              _referenciaController.clear();
+              _calcularCambio();
             });
           },
           style: OutlinedButton.styleFrom(
@@ -455,7 +208,6 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
     );
   }
 
-  // --- 6. AÑADIR NUEVO HELPER PARA TARJETA ---
   Widget _buildLogicaTarjeta() {
     return Column(
       children: [
@@ -484,7 +236,6 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
   }
 
   Widget _buildLogicaEfectivo() {
-    // ... (Sin cambios) ...
     return Column(
       children: [
         TextField(

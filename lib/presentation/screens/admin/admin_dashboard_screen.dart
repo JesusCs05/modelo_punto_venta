@@ -8,6 +8,7 @@ import 'user_admin_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../login_screen.dart';
+import '../../utils/backup_utils.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -88,33 +89,137 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 alignment: Alignment.bottomCenter,
                 child: Padding(
                   padding: const EdgeInsets.only(bottom: 20.0),
-                  child: Tooltip(
-                    message: 'Cerrar sesión',
-                    child: IconButton(
-                      icon: const Icon(
-                        Icons.logout,
-                        color: AppColors.accentDanger,
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      // Backup button
+                      Tooltip(
+                        message: 'Copia de seguridad (Exportar/Importar)',
+                        child: IconButton(
+                          icon: const Icon(Icons.backup),
+                          color: AppColors.textInverted,
+                          onPressed: () async {
+                            // Abrir diálogo con opciones
+                            showDialog<void>(
+                              context: context,
+                              builder: (ctx) {
+                                return AlertDialog(
+                                  title: const Text('Copia de seguridad'),
+                                  content: const Text(
+                                    'Exportar o importar la base de datos.',
+                                  ),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () async {
+                                        Navigator.of(ctx).pop();
+                                        try {
+                                          final dest = await exportDatabase(
+                                            context,
+                                          );
+                                          if (dest != null) {
+                                            if (!mounted) return;
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              SnackBar(
+                                                content: Text(
+                                                  'Exportado a: $dest',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Error exportando: ${e.toString()}',
+                                              ),
+                                              backgroundColor:
+                                                  AppColors.accentDanger,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      child: const Text('Exportar'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () async {
+                                        Navigator.of(ctx).pop();
+                                        try {
+                                          final imported = await importDatabase(
+                                            context,
+                                          );
+                                          if (imported != null) {
+                                            if (!mounted) return;
+                                            ScaffoldMessenger.of(
+                                              context,
+                                            ).showSnackBar(
+                                              const SnackBar(
+                                                content: Text(
+                                                  'Importación completada. Reinicia la app si es necesario.',
+                                                ),
+                                              ),
+                                            );
+                                          }
+                                        } catch (e) {
+                                          if (!mounted) return;
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              content: Text(
+                                                'Error importando: ${e.toString()}',
+                                              ),
+                                              backgroundColor:
+                                                  AppColors.accentDanger,
+                                            ),
+                                          );
+                                        }
+                                      },
+                                      child: const Text('Importar'),
+                                    ),
+                                    TextButton(
+                                      onPressed: () => Navigator.of(ctx).pop(),
+                                      child: const Text('Cancelar'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
+                          },
+                        ),
                       ),
-                      onPressed: () {
-                        // 1. Obtener el AuthProvider
-                        final authProvider = context.read<AuthProvider>();
 
-                        // 2. Llamar a la función de logout
-                        authProvider.logout();
+                      const SizedBox(height: 8),
 
-                        // 3. Regresar a la pantalla de Login
-                        // Usamos pushAndRemoveUntil para limpiar el historial
-                        // y evitar que el usuario pueda "retroceder"
-                        // a la pantalla de admin.
-                        Navigator.of(context).pushAndRemoveUntil(
-                          MaterialPageRoute(
-                            builder: (context) => const LoginScreen(),
+                      Tooltip(
+                        message: 'Cerrar sesión',
+                        child: IconButton(
+                          icon: const Icon(
+                            Icons.logout,
+                            color: AppColors.accentDanger,
                           ),
-                          (Route<dynamic> route) =>
-                              false, // Elimina todas las rutas anteriores
-                        );
-                      },
-                    ),
+                          onPressed: () {
+                            // 1. Obtener el AuthProvider
+                            final authProvider = context.read<AuthProvider>();
+
+                            // 2. Llamar a la función de logout
+                            authProvider.logout();
+
+                            // 3. Regresar a la pantalla de Login
+                            Navigator.of(context).pushAndRemoveUntil(
+                              MaterialPageRoute(
+                                builder: (context) => const LoginScreen(),
+                              ),
+                              (Route<dynamic> route) => false,
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ),
