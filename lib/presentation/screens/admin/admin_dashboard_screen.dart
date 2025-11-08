@@ -1,5 +1,6 @@
 // Archivo: lib/presentation/screens/admin/admin_dashboard_screen.dart
 import 'package:flutter/material.dart';
+import 'package:modelo_venta/presentation/screens/admin/backup_dashboard.dart';
 import '../../theme/app_colors.dart';
 import 'product_admin_screen.dart';
 import 'inventory_admin_screen.dart';
@@ -7,8 +8,8 @@ import 'reports_screen.dart';
 import 'user_admin_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import 'business_settings_screen.dart';
 import '../login_screen.dart';
-import '../../utils/backup_utils.dart';
 
 class AdminDashboardScreen extends StatefulWidget {
   const AdminDashboardScreen({super.key});
@@ -31,185 +32,142 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         return const ReportsScreen();
       case 3:
         return const UserAdminScreen();
+      case 4:
+        return const BackupUtils();
+
       default:
         return const ProductAdminScreen();
     }
   }
 
+  Widget _sideButton({
+    required String label,
+    required IconData icon,
+    required int index,
+  }) {
+    final bool selected = _selectedIndex == index;
+    return SizedBox(
+      width: double.infinity,
+      child: ElevatedButton.icon(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: selected
+              ? AppColors.textInverted
+              : Colors.transparent,
+          foregroundColor: selected
+              ? AppColors.primary
+              : AppColors.textInverted,
+          elevation: 0,
+          padding: const EdgeInsets.symmetric(vertical: 12.0, horizontal: 8.0),
+        ),
+        onPressed: () => setState(() => _selectedIndex = index),
+        icon: Icon(icon, size: 18),
+        label: Align(alignment: Alignment.centerLeft, child: Text(label)),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
+    final authProvider = context.watch<AuthProvider>();
     return Scaffold(
       body: Row(
         children: [
-          NavigationRail(
-            backgroundColor: AppColors.primary,
-            onDestinationSelected: (int index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-            selectedIndex: _selectedIndex,
-            labelType: NavigationRailLabelType.all,
-            leading: const Padding(
-              padding: EdgeInsets.symmetric(vertical: 20.0),
-              child: Icon(
-                Icons.store_mall_directory,
-                color: AppColors.textInverted,
-                size: 40,
-              ),
-            ),
-            destinations: const [
-              NavigationRailDestination(
-                icon: Icon(Icons.inventory_2_outlined),
-                selectedIcon: Icon(Icons.inventory_2),
-                label: Text('Productos'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.warehouse_outlined),
-                selectedIcon: Icon(Icons.warehouse),
-                label: Text('Inventario'),
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.assessment_outlined),
-                selectedIcon: Icon(Icons.assessment),
-                label: Text('Reportes'), // Index 2
-              ),
-              NavigationRailDestination(
-                icon: Icon(Icons.people_outline),
-                selectedIcon: Icon(Icons.people),
-                label: Text('Usuarios'), // Index 3
-              ),
-            ],
-            // Estilo del texto del menú
-            selectedLabelTextStyle: const TextStyle(
-              color: AppColors.textInverted,
-            ),
-            trailing: Expanded(
-              child: Align(
-                alignment: Alignment.bottomCenter,
-                child: Padding(
+          Container(
+            width: 160,
+            color: AppColors.primary,
+            child: Column(
+              children: [
+                const Padding(
+                  padding: EdgeInsets.symmetric(vertical: 20.0),
+                  child: Icon(
+                    Icons.store_mall_directory,
+                    color: AppColors.textInverted,
+                    size: 40,
+                  ),
+                ),
+                // Opciones como botones
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 8.0,
+                      horizontal: 12.0,
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      children: [
+                        _sideButton(
+                          label: 'Productos',
+                          icon: Icons.inventory_2_outlined,
+                          index: 0,
+                        ),
+                        const SizedBox(height: 8),
+                        _sideButton(
+                          label: 'Inventario',
+                          icon: Icons.warehouse_outlined,
+                          index: 1,
+                        ),
+                        const SizedBox(height: 8),
+                        _sideButton(
+                          label: 'Reportes',
+                          icon: Icons.assessment_outlined,
+                          index: 2,
+                        ),
+                        const SizedBox(height: 8),
+                        _sideButton(
+                          label: 'Usuarios',
+                          icon: Icons.people_outline,
+                          index: 3,
+                        ),
+                        const SizedBox(height: 8),
+                        _sideButton(
+                          label: 'Copia de seguridad',
+                          icon: Icons.backup,
+                          index: 4,
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                // Área inferior: ajustes (solo admin) y logout
+                Padding(
                   padding: const EdgeInsets.only(bottom: 20.0),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      // Backup button
-                      Tooltip(
-                        message: 'Copia de seguridad (Exportar/Importar)',
-                        child: IconButton(
-                          icon: const Icon(Icons.backup),
-                          color: AppColors.textInverted,
-                          onPressed: () async {
-                            // Abrir diálogo con opciones
-                            showDialog<void>(
-                              context: context,
-                              builder: (ctx) {
-                                return AlertDialog(
-                                  title: const Text('Copia de seguridad'),
-                                  content: const Text(
-                                    'Exportar o importar la base de datos.',
-                                  ),
-                                  actions: [
-                                    TextButton(
-                                      onPressed: () async {
-                                        Navigator.of(ctx).pop();
-                                        try {
-                                          final dest = await exportDatabase(
-                                            context,
-                                          );
-                                          if (dest != null) {
-                                            if (!mounted) return;
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              SnackBar(
-                                                content: Text(
-                                                  'Exportado a: $dest',
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                        } catch (e) {
-                                          if (!mounted) return;
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Error exportando: ${e.toString()}',
-                                              ),
-                                              backgroundColor:
-                                                  AppColors.accentDanger,
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      child: const Text('Exportar'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () async {
-                                        Navigator.of(ctx).pop();
-                                        try {
-                                          final imported = await importDatabase(
-                                            context,
-                                          );
-                                          if (imported != null) {
-                                            if (!mounted) return;
-                                            ScaffoldMessenger.of(
-                                              context,
-                                            ).showSnackBar(
-                                              const SnackBar(
-                                                content: Text(
-                                                  'Importación completada. Reinicia la app si es necesario.',
-                                                ),
-                                              ),
-                                            );
-                                          }
-                                        } catch (e) {
-                                          if (!mounted) return;
-                                          ScaffoldMessenger.of(
-                                            context,
-                                          ).showSnackBar(
-                                            SnackBar(
-                                              content: Text(
-                                                'Error importando: ${e.toString()}',
-                                              ),
-                                              backgroundColor:
-                                                  AppColors.accentDanger,
-                                            ),
-                                          );
-                                        }
-                                      },
-                                      child: const Text('Importar'),
-                                    ),
-                                    TextButton(
-                                      onPressed: () => Navigator.of(ctx).pop(),
-                                      child: const Text('Cancelar'),
-                                    ),
-                                  ],
-                                );
-                              },
-                            );
-                          },
+                      const Divider(color: AppColors.paletteLightGray, indent: 12, endIndent: 12),
+                      if (authProvider.isAdmin)
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 6.0),
+                          child: OutlinedButton.icon(
+                            style: OutlinedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: AppColors.textInverted,
+                              side: const BorderSide(color: Colors.transparent),
+                            ),
+                            onPressed: () {
+                              Navigator.of(context).push(
+                                MaterialPageRoute(
+                                  builder: (_) =>
+                                      const BusinessSettingsScreen(),
+                                ),
+                              );
+                            },
+                            icon: const Icon(Icons.settings, size: 18),
+                            label: const Text('Ajustes'),
+                          ),
                         ),
-                      ),
 
-                      const SizedBox(height: 8),
-
-                      Tooltip(
-                        message: 'Cerrar sesión',
-                        child: IconButton(
-                          icon: const Icon(
-                            Icons.logout,
-                            color: AppColors.accentDanger,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 6.0),
+                        child: OutlinedButton.icon(
+                          style: OutlinedButton.styleFrom(
+                            backgroundColor: Colors.transparent,
+                            foregroundColor: AppColors.accentDanger,
+                            side: const BorderSide(color: Colors.transparent),
                           ),
                           onPressed: () {
-                            // 1. Obtener el AuthProvider
-                            final authProvider = context.read<AuthProvider>();
-
-                            // 2. Llamar a la función de logout
                             authProvider.logout();
-
-                            // 3. Regresar a la pantalla de Login
                             Navigator.of(context).pushAndRemoveUntil(
                               MaterialPageRoute(
                                 builder: (context) => const LoginScreen(),
@@ -217,26 +175,14 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                               (Route<dynamic> route) => false,
                             );
                           },
+                          icon: const Icon(Icons.logout, size: 18),
+                          label: const Text('Cerrar sesión'),
                         ),
                       ),
                     ],
                   ),
                 ),
-              ),
-            ),
-
-            // --- FIX 1 (Línea ~76) ---
-            unselectedLabelTextStyle: TextStyle(
-              color: AppColors.textInverted.withAlpha(178),
-            ),
-
-            selectedIconTheme: const IconThemeData(
-              color: AppColors.textInverted,
-            ),
-
-            // --- FIX 2 (Línea ~80) ---
-            unselectedIconTheme: IconThemeData(
-              color: AppColors.textInverted.withAlpha(178),
+              ],
             ),
           ),
 

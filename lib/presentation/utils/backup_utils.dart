@@ -31,7 +31,7 @@ Future<String> _getDbPath() async {
 Future<void> _reopenIsar() async {
   final dir = await getApplicationDocumentsDirectory();
   // Close existing if not closed
-  if (app_main.isar != null && app_main.isar.isOpen) {
+  if (app_main.isar.isOpen) {
     try {
       await app_main.isar.close();
     } catch (_) {}

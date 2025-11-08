@@ -1,23 +1,15 @@
 // Archivo: lib/presentation/screens/login_screen.dart
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
-import 'admin/admin_dashboard_screen.dart'; // To navigate to Admin
-
-// --- ISAR Imports ---
+import 'admin/admin_dashboard_screen.dart'; 
 import 'package:isar/isar.dart';
-import '../../main.dart'; // Import main.dart to access the global 'isar' instance
-import '../../data/collections/usuario.dart'; // Import the Usuario collection
-// --- End ISAR Imports ---
-
+import '../../main.dart'; 
+import '../../data/collections/usuario.dart'; 
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
-
-// --- REMOVE Old Drift/Provider Imports ---
 import 'package:provider/provider.dart';
 import '/presentation/providers/auth_provider.dart';
 import 'abrir_turno_screen.dart';
-// import '../../data/db/app_db.dart'; // REMOVE THIS
-// --- End Removal ---
 
 
 class LoginScreen extends StatefulWidget {
@@ -33,14 +25,13 @@ class _LoginScreenState extends State<LoginScreen> {
   final _passwordController = TextEditingController();
   bool _isLoading = false;
 
-  // Updated Login Logic using Isar
-Future<void> _login() async {
+  Future<void> _login() async {
+    // ... (Tu código de login se queda igual)
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
     setState(() { _isLoading = true; });
 
-    // 1. Guarda el AuthProvider y el Context ANTES del await
     final authProvider = context.read<AuthProvider>();
     final currentContext = context;
 
@@ -57,19 +48,15 @@ Future<void> _login() async {
           .findFirst();
 
       if (usuario != null) {
-        // 2. Llama al AuthProvider para guardar la sesión
-        await authProvider.login(usuario); // Esto carga el rol
+        await authProvider.login(usuario); 
 
-        // 3. Verifica 'mounted' después del await
         if (!currentContext.mounted) return;
 
-        // 4. Navega usando el estado del provider
         if (authProvider.isAdmin) {
           Navigator.of(currentContext).pushReplacement(
             MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
           );
         } else {
-            // No es admin, ir a abrir turno
           Navigator.of(currentContext).pushReplacement(
             MaterialPageRoute(builder: (context) => const AbrirTurnoScreen()),
           );
@@ -93,15 +80,18 @@ Future<void> _login() async {
         ),
       );
     } finally {
-      if (mounted) { // 'mounted' aquí está bien porque 'setState' es parte de este widget
+      if (mounted) { 
         setState(() { _isLoading = false; });
       }
     }
   }
 
+  // --- 1. ELIMINAR EL MÉTODO _mostrarDialogoConfirmarSalida ---
+  // (La lógica ahora vive en main.dart)
+
   @override
   Widget build(BuildContext context) {
-    // The build method remains mostly the same, only removed Provider call
+    // --- 2. ELIMINAR EL WIDGET PopScope ---
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
@@ -116,7 +106,7 @@ Future<void> _login() async {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon( // Placeholder logo
+                    const Icon( 
                       Icons.store,
                       size: 100,
                       color: AppColors.primary,
@@ -151,8 +141,9 @@ Future<void> _login() async {
     );
   }
 
-  // Helper methods (_buildLoginButton, _buildInputDecoration) remain unchanged
- Widget _buildLoginButton() {
+  // Los métodos _buildLoginButton y _buildInputDecoration se quedan igual
+  //
+  Widget _buildLoginButton() {
     return SizedBox(
       height: 55,
       child: ElevatedButton(
@@ -185,8 +176,7 @@ Future<void> _login() async {
       labelText: label,
       labelStyle: const TextStyle(color: AppColors.primary),
       filled: true,
-      // FIX: Use withAlpha instead of deprecated withOpacity
-      fillColor: AppColors.cardBackground.withAlpha(128), // ~50% opacity
+      fillColor: AppColors.cardBackground.withAlpha(128), 
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
@@ -205,7 +195,6 @@ Future<void> _login() async {
       ),
     );
   }
-
 
   @override
   void dispose() {

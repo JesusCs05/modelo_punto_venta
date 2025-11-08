@@ -78,7 +78,7 @@ class UserAdminScreen extends StatelessWidget {
         headingRowColor: WidgetStateProperty.all(AppColors.primary.withAlpha(26)),
         columns: const [
           DataColumn(label: Text('Nombre Completo')),
-          DataColumn(label: Text('Username (Login)')),
+          DataColumn(label: Text('Nombre de Usuario')),
           DataColumn(label: Text('Rol')),
           DataColumn(label: Text('Acciones')),
         ],

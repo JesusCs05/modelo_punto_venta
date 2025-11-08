@@ -7,6 +7,7 @@ import '../../theme/app_colors.dart';
 import '../../providers/cart_provider.dart';
 import '../pos/modal_cobro.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/business_provider.dart';
 import 'modal_cerrar_turno.dart';
 import 'package:intl/intl.dart'; // <<< AÑADE ESTA LÍNEA
 
@@ -44,7 +45,7 @@ class CartWidget extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
-                      'Modelorama Papadzul (${cart.items.length})',
+                      'Carrito (${cart.items.length})',
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
@@ -440,13 +441,19 @@ class _CartActions extends StatelessWidget {
     final items = cart.lastSaleItems;
     final total = cart.lastSaleTotal;
     final cajero = cart.lastSaleUser?.nombre ?? 'N/A';
+    final businessInfo = context.read<BusinessProvider>().info;
 
     if (items.isEmpty) {
       debugPrint("No hay items en la última venta para imprimir.");
       return;
     }
 
-    final Uint8List pdfData = await _generateTicketPdf(items, total, cajero);
+    final Uint8List pdfData = await _generateTicketPdf(
+      items,
+      total,
+      cajero,
+      businessInfo,
+    );
 
     try {
       // Esta función mostrará el diálogo de impresión de Windows
@@ -472,6 +479,7 @@ class _CartActions extends StatelessWidget {
     List<CartItem> items,
     double total,
     String cajero,
+    dynamic businessInfo,
   ) async {
     final pdf = pw.Document();
     final currencyFormat = NumberFormat.currency(locale: 'es_MX', symbol: '\$');
@@ -491,13 +499,27 @@ class _CartActions extends StatelessWidget {
             children: [
               pw.Center(
                 child: pw.Text(
-                  'Modelorama Papadzul',
+                  (businessInfo?.nombre ?? 'Mi Negocio'),
                   style: pw.TextStyle(
                     fontWeight: pw.FontWeight.bold,
                     fontSize: 14,
                   ),
                 ),
               ),
+              if ((businessInfo?.razonSocial ?? '').isNotEmpty)
+                pw.Center(
+                  child: pw.Text(
+                    businessInfo.razonSocial,
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                ),
+              if ((businessInfo?.telefono ?? '').isNotEmpty)
+                pw.Center(
+                  child: pw.Text(
+                    'Tel: ${businessInfo.telefono}',
+                    style: const pw.TextStyle(fontSize: 9),
+                  ),
+                ),
               pw.Center(
                 child: pw.Text(
                   'Ticket de Venta',
