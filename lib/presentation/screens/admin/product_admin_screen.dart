@@ -114,7 +114,7 @@ class ProductAdminScreen extends StatelessWidget {
                     },
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete, color: AppColors.accentDanger),
+                    icon: const Icon(Icons.delete_forever, color: AppColors.accentDanger),
                     onPressed: () async {
                       // (Lógica de eliminación con 'mounted' check)
                       final currentContext = context;
