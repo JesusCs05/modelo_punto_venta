@@ -114,7 +114,7 @@ class ProductAdminScreen extends StatelessWidget {
                     },
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete_forever, color: AppColors.accentDanger),
+                    icon: const Icon(Icons.delete_forever, color: AppColors.accentCta),
                     onPressed: () async {
                       // (Lógica de eliminación con 'mounted' check)
                       final currentContext = context;
@@ -127,7 +127,7 @@ class ProductAdminScreen extends StatelessWidget {
                           content: Text('¿Seguro que deseas eliminar "${producto.nombre}"?'),
                           actions: [
                             TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
-                            TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Eliminar', style: TextStyle(color: AppColors.accentDanger))),
+                            TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Eliminar', style: TextStyle(color: AppColors.accentCta))),
                           ],
                         ),
                       );

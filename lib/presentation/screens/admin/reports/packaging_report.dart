@@ -51,7 +51,7 @@ class _PackagingReportState extends State<PackagingReport> {
     if (tipoEnvase == null) {
       setState(() { _isLoading = false; });
       ScaffoldMessenger.of(currentContext).showSnackBar( // 3. Usar el context guardado
-        const SnackBar(content: Text('Error: No se encontró el Tipo de Producto "Envase"'), backgroundColor: AppColors.accentDanger),
+        const SnackBar(content: Text('Error: No se encontró el Tipo de Producto "Envase"'), backgroundColor: AppColors.accentCta),
       );
       return;
     }
@@ -163,7 +163,7 @@ class _PackagingReportState extends State<PackagingReport> {
       children: [
         // --- CORRECCIÓN 'unnecessary_brace_in_string_interps' ---
         _buildSummaryCard('Envases Entrantes', '+$_totalEntradas', AppColors.primary),
-        _buildSummaryCard('Envases Salientes', '$_totalSalidas', AppColors.accentDanger),
+        _buildSummaryCard('Envases Salientes', '$_totalSalidas', AppColors.accentCta),
         // Esta SÍ necesita llaves porque es una expresión compleja
         _buildSummaryCard('Balance Total', '${_balanceTotal > 0 ? '+' : ''}$_balanceTotal', AppColors.secondary),
         // --- Fin Corrección ---
@@ -204,7 +204,7 @@ class _PackagingReportState extends State<PackagingReport> {
             final productoNombre = mov.producto.value?.nombre ?? 'N/A';
             final usuarioNombre = mov.usuario.value?.nombre ?? 'N/A';
             final bool isEntrada = mov.cantidad > 0;
-            final Color colorCantidad = isEntrada ? AppColors.primary : AppColors.accentDanger;
+            final Color colorCantidad = isEntrada ? AppColors.primary : AppColors.accentCta;
 
             return DataRow(cells: [
               DataCell(Text(DateFormat('dd/MM/yy HH:mm').format(mov.fecha.toLocal()))),

@@ -183,7 +183,7 @@ class _TopProductsReportState extends State<TopProductsReport> {
             subtitle: Text('SKU: ${item.producto.sku ?? 'N/A'}'),
             trailing: Text(
               '${item.totalVendido} Uds.',
-              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.accentDanger),
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.accentCta),
             ),
           );
         },

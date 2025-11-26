@@ -93,7 +93,7 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
     final usuarioID = auth.currentUserId;
     if (usuarioID == null) {
        ScaffoldMessenger.of(context).showSnackBar(
-         const SnackBar(content: Text('Error: Usuario no identificado.'), backgroundColor: AppColors.accentDanger,)
+         const SnackBar(content: Text('Error: Usuario no identificado.'), backgroundColor: AppColors.accentCta,)
        );
        return;
     }
@@ -108,7 +108,7 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
       if (cantidad <= 0) {
          setState(() { _isLoading = false; });
          ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text('La cantidad debe ser un número positivo.'), backgroundColor: AppColors.accentDanger,)
+           const SnackBar(content: Text('La cantidad debe ser un número positivo.'), backgroundColor: AppColors.accentCta,)
          );
          return;
       }
@@ -146,7 +146,7 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
       if (mounted) {
         setState(() { _isLoading = false; });
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al guardar recepción: $e'), backgroundColor: AppColors.accentDanger,));
+            SnackBar(content: Text('Error al guardar recepción: $e'), backgroundColor: AppColors.accentCta,));
       }
     }
   }
@@ -160,7 +160,7 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
       content: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _loadingError != null
-             ? Center(child: Text(_loadingError!, style: TextStyle(color: AppColors.accentDanger)))
+             ? Center(child: Text(_loadingError!, style: TextStyle(color: AppColors.accentCta)))
              : _buildForm(),
       actions: (_isLoading || _loadingError != null)
           ? [ TextButton( onPressed: () => Navigator.of(context).pop(), child: const Text('Cerrar')) ]
@@ -168,7 +168,7 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text('Cancelar',
-                    style: TextStyle(color: AppColors.accentDanger)),
+                    style: TextStyle(color: AppColors.accentCta)),
               ),
               ElevatedButton(
                 onPressed: _guardarRecepcion,

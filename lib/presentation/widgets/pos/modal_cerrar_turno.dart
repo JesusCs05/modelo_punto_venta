@@ -162,7 +162,7 @@ class _CerrarTurnoContenidoState extends State<_CerrarTurnoContenido> {
       if (!mounted) return;
       setState(() { _isLoading = false; });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error al cerrar turno: ${e.toString()}'), backgroundColor: AppColors.accentDanger),
+        SnackBar(content: Text('Error al cerrar turno: ${e.toString()}'), backgroundColor: AppColors.accentCta),
       );
     }
   }
@@ -181,14 +181,14 @@ class _CerrarTurnoContenidoState extends State<_CerrarTurnoContenido> {
       content: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _loadingError != null
-              ? Center(child: Text(_loadingError!, style: TextStyle(color: AppColors.accentDanger)))
+              ? Center(child: Text(_loadingError!, style: TextStyle(color: AppColors.accentCta)))
               : _buildForm(),
       actions: (_isLoading || _loadingError != null)
           ? [ TextButton( onPressed: () => Navigator.of(context).pop(CierreTurnoResultado.cancelado), child: const Text('Cerrar')) ]
           : [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(CierreTurnoResultado.cancelado),
-                child: const Text('Cancelar', style: TextStyle(color: AppColors.accentDanger)),
+                child: const Text('Cancelar', style: TextStyle(color: AppColors.accentCta)),
               ),
               ElevatedButton(
                 onPressed: _finalizarTurnoYLogout, // Llama a la función final
@@ -226,7 +226,7 @@ class _CerrarTurnoContenidoState extends State<_CerrarTurnoContenido> {
               onChanged: (value) => _calcularDiferencia(),
             ),
             const SizedBox(height: 16),
-            _buildRow('(=) Diferencia (Sobrante/Faltante):', _currencyFormat.format(_diferencia), isTotal: true, color: _diferencia == 0 ? AppColors.primary : AppColors.accentDanger),
+            _buildRow('(=) Diferencia (Sobrante/Faltante):', _currencyFormat.format(_diferencia), isTotal: true, color: _diferencia == 0 ? AppColors.primary : AppColors.accentCta),
           ],
         ),
       ),

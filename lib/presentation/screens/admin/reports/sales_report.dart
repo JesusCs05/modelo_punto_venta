@@ -189,7 +189,7 @@ class _SalesReportState extends State<SalesReport> {
         _buildSummaryCard(
           'Total Costo',
           _currencyFormat.format(_totalCosto),
-          AppColors.accentDanger,
+          AppColors.accentCta,
         ),
         _buildSummaryCard(
           'Ganancia (Venta - Costo)',

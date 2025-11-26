@@ -99,14 +99,14 @@ class UserAdminScreen extends StatelessWidget {
                     },
                   ),
                   IconButton(
-                    icon: const Icon(Icons.delete, color: AppColors.accentDanger),
+                    icon: const Icon(Icons.delete, color: AppColors.accentCta),
                     onPressed: () async {
                       // Lógica de "Desactivar" (Eliminar) 
                       final confirmar = await _mostrarConfirmacion(context, usuario.nombre);
                       if (confirmar ?? false) {
                         if (usuario.id == 1) { // Protección para no borrar al admin principal
                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('No se puede eliminar al administrador principal.'), backgroundColor: AppColors.accentDanger,)
+                              const SnackBar(content: Text('No se puede eliminar al administrador principal.'), backgroundColor: AppColors.accentCta,)
                            );
                            return;
                         }
@@ -134,7 +134,7 @@ class UserAdminScreen extends StatelessWidget {
         content: Text('¿Seguro que deseas desactivar al usuario "$nombre"?'),
         actions: [
           TextButton(onPressed: () => Navigator.of(ctx).pop(false), child: const Text('Cancelar')),
-          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Desactivar', style: TextStyle(color: AppColors.accentDanger))),
+          TextButton(onPressed: () => Navigator.of(ctx).pop(true), child: const Text('Desactivar', style: TextStyle(color: AppColors.accentCta))),
         ],
       ),
     );

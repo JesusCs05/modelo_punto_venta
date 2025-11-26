@@ -3,7 +3,7 @@ import '../../theme/app_colors.dart';
 import '../../utils/backup_utils.dart';
 
 class BackupUtils extends StatefulWidget {
-  const BackupUtils({Key? key}) : super(key: key);
+  const BackupUtils({super.key});
 
   @override
   State<BackupUtils> createState() => _BackupUtilsState();
@@ -22,7 +22,7 @@ class _BackupUtilsState extends State<BackupUtils> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error exportando: ${e.toString()}'),
-          backgroundColor: AppColors.accentDanger,
+          backgroundColor: AppColors.accentCta,
         ),
       );
     }
@@ -44,7 +44,7 @@ class _BackupUtilsState extends State<BackupUtils> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error importando: ${e.toString()}'),
-          backgroundColor: AppColors.accentDanger,
+          backgroundColor: AppColors.accentCta,
         ),
       );
     }
@@ -53,7 +53,7 @@ class _BackupUtilsState extends State<BackupUtils> {
   @override
   Widget build(BuildContext context) {
     return Card(
-      color: AppColors.paletteLightGray,
+      color: AppColors.cardBackground,
       elevation: 2,
       margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
       child: Padding(
@@ -78,7 +78,7 @@ class _BackupUtilsState extends State<BackupUtils> {
                     icon: const Icon(Icons.upload_file),
                     label: const Text('Exportar'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.paletteGold,
+                      backgroundColor: AppColors.accentCta,
                       foregroundColor: AppColors.textInverted,
                     ),
                     onPressed: () => _doExport(context),
@@ -90,7 +90,7 @@ class _BackupUtilsState extends State<BackupUtils> {
                     icon: const Icon(Icons.download_rounded),
                     label: const Text('Importar'),
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.paletteNavy,
+                      backgroundColor: AppColors.primary,
                       foregroundColor: AppColors.textInverted,
                     ),
                     onPressed: () => _doImport(context),
@@ -169,7 +169,7 @@ class _BackupUtilsState extends State<BackupUtils> {
 //       ScaffoldMessenger.of(context).showSnackBar(
 //         SnackBar(
 //           content: Text('Error exportando: ${e.toString()}'),
-//           backgroundColor: AppColors.accentDanger,
+//           backgroundColor: AppColors.accentCta,
 //         ),
 //       );
 //     }
@@ -193,7 +193,7 @@ class _BackupUtilsState extends State<BackupUtils> {
 //       ScaffoldMessenger.of(context).showSnackBar(
 //         SnackBar(
 //           content: Text('Error importando: ${e.toString()}'),
-//           backgroundColor: AppColors.accentDanger,
+//           backgroundColor: AppColors.accentCta,
 //         ),
 //       );
 //     }

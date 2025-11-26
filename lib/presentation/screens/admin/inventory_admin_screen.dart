@@ -139,7 +139,7 @@ class InventoryAdminScreen extends StatelessWidget {
           final usuarioNombre = movimiento.usuario.value?.nombre ?? 'N/A';
 
           final bool isEntrada = movimiento.cantidad > 0;
-          final Color colorCantidad = isEntrada ? AppColors.primary : AppColors.accentDanger;
+          final Color colorCantidad = isEntrada ? AppColors.primary : AppColors.accentCta;
 
           return DataRow(
             cells: [

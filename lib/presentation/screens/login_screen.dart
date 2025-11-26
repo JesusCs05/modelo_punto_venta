@@ -1,16 +1,15 @@
 // Archivo: lib/presentation/screens/login_screen.dart
 import 'package:flutter/material.dart';
 import '../theme/app_colors.dart';
-import 'admin/admin_dashboard_screen.dart'; 
+import 'admin/admin_dashboard_screen.dart';
 import 'package:isar/isar.dart';
-import '../../main.dart'; 
-import '../../data/collections/usuario.dart'; 
+import '../../main.dart';
+import '../../data/collections/usuario.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'package:provider/provider.dart';
 import '/presentation/providers/auth_provider.dart';
 import 'abrir_turno_screen.dart';
-
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -30,7 +29,9 @@ class _LoginScreenState extends State<LoginScreen> {
     if (!(_formKey.currentState?.validate() ?? false)) {
       return;
     }
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
 
     final authProvider = context.read<AuthProvider>();
     final currentContext = context;
@@ -48,13 +49,15 @@ class _LoginScreenState extends State<LoginScreen> {
           .findFirst();
 
       if (usuario != null) {
-        await authProvider.login(usuario); 
+        await authProvider.login(usuario);
 
         if (!currentContext.mounted) return;
 
         if (authProvider.isAdmin) {
           Navigator.of(currentContext).pushReplacement(
-            MaterialPageRoute(builder: (context) => const AdminDashboardScreen()),
+            MaterialPageRoute(
+              builder: (context) => const AdminDashboardScreen(),
+            ),
           );
         } else {
           Navigator.of(currentContext).pushReplacement(
@@ -66,7 +69,7 @@ class _LoginScreenState extends State<LoginScreen> {
         ScaffoldMessenger.of(currentContext).showSnackBar(
           const SnackBar(
             content: Text('Usuario o contraseña incorrectos'),
-            backgroundColor: AppColors.accentDanger,
+            backgroundColor: AppColors.accentCta,
           ),
         );
       }
@@ -76,22 +79,20 @@ class _LoginScreenState extends State<LoginScreen> {
       ScaffoldMessenger.of(currentContext).showSnackBar(
         SnackBar(
           content: Text('Error al iniciar sesión: ${e.toString()}'),
-          backgroundColor: AppColors.accentDanger,
+          backgroundColor: AppColors.accentCta,
         ),
       );
     } finally {
-      if (mounted) { 
-        setState(() { _isLoading = false; });
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
 
-  // --- 1. ELIMINAR EL MÉTODO _mostrarDialogoConfirmarSalida ---
-  // (La lógica ahora vive en main.dart)
-
   @override
   Widget build(BuildContext context) {
-    // --- 2. ELIMINAR EL WIDGET PopScope ---
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
@@ -106,18 +107,19 @@ class _LoginScreenState extends State<LoginScreen> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    const Icon( 
-                      Icons.store,
-                      size: 100,
-                      color: AppColors.primary,
+                    const Image(
+                      image: AssetImage('lib/assets/images/app_icon.png'),
+                      width: 100,
+                      height: 100,
                     ),
                     const SizedBox(height: 32),
                     TextFormField(
                       controller: _userController,
                       decoration: _buildInputDecoration('Usuario'),
                       style: const TextStyle(color: AppColors.textPrimary),
-                      validator: (value) =>
-                          (value?.isEmpty ?? true) ? 'Ingrese su usuario' : null,
+                      validator: (value) => (value?.isEmpty ?? true)
+                          ? 'Ingrese su usuario'
+                          : null,
                     ),
                     const SizedBox(height: 20),
                     TextFormField(
@@ -150,22 +152,18 @@ class _LoginScreenState extends State<LoginScreen> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.textInverted,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
         onPressed: _isLoading ? null : _login,
         child: _isLoading
             ? const CircularProgressIndicator(
-                valueColor:
-                    AlwaysStoppedAnimation<Color>(AppColors.textInverted),
+                valueColor: AlwaysStoppedAnimation<Color>(
+                  AppColors.textInverted,
+                ),
               )
             : const Text(
                 'INGRESAR',
-                style: TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
               ),
       ),
     );
@@ -176,7 +174,7 @@ class _LoginScreenState extends State<LoginScreen> {
       labelText: label,
       labelStyle: const TextStyle(color: AppColors.primary),
       filled: true,
-      fillColor: AppColors.cardBackground.withAlpha(128), 
+      fillColor: AppColors.cardBackground.withAlpha(128),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
@@ -187,11 +185,11 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
       errorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.accentDanger, width: 1.5),
+        borderSide: const BorderSide(color: AppColors.accentCta, width: 1.5),
       ),
       focusedErrorBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
-        borderSide: const BorderSide(color: AppColors.accentDanger, width: 2.5),
+        borderSide: const BorderSide(color: AppColors.accentCta, width: 2.5),
       ),
     );
   }

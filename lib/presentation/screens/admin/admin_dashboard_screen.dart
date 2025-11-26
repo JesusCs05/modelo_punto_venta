@@ -79,10 +79,10 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
               children: [
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20.0),
-                  child: Icon(
-                    Icons.store_mall_directory,
-                    color: AppColors.textInverted,
-                    size: 40,
+                  child: Image(
+                    image: AssetImage('lib/assets/images/app_icon.png'),
+                    width: 50,
+                    height: 50,
                   ),
                 ),
                 // Opciones como botones
@@ -135,7 +135,11 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      const Divider(color: AppColors.paletteLightGray, indent: 12, endIndent: 12),
+                      const Divider(
+                        color: AppColors.secondary,
+                        indent: 12,
+                        endIndent: 12,
+                      ),
                       if (authProvider.isAdmin)
                         Padding(
                           padding: const EdgeInsets.symmetric(vertical: 6.0),
@@ -163,7 +167,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                         child: OutlinedButton.icon(
                           style: OutlinedButton.styleFrom(
                             backgroundColor: Colors.transparent,
-                            foregroundColor: AppColors.accentDanger,
+                            foregroundColor: AppColors.accentCta,
                             side: const BorderSide(color: Colors.transparent),
                           ),
                           onPressed: () {

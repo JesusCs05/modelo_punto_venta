@@ -11,6 +11,7 @@ import 'data/collections/venta.dart';
 import 'data/collections/venta_detalle.dart';
 import 'data/collections/turno.dart';
 import 'data/collections/movimiento_inventario.dart';
+import 'data/collections/negocio.dart';
 // --- End Collection Imports ---
 import 'presentation/screens/login_screen.dart';
 import 'package:window_manager/window_manager.dart';
@@ -56,6 +57,7 @@ Future<void> main() async {
       VentaDetalleSchema,
       TurnoSchema,
       MovimientoInventarioSchema,
+      NegocioSchema,
     ],
     directory: dir.path,
     name: 'posDepositoDB', // Name your database file
@@ -73,7 +75,7 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (context) => TurnoProvider()),
 
         // BusinessProvider: carga la información del negocio desde SharedPreferences
-        ChangeNotifierProvider(create: (context) => BusinessProvider()..load()),
+        ChangeNotifierProvider(create: (context) => BusinessProvider(isar)..load()),
 
         // --- AÑADE ESTO AQUÍ ---
         // CartProvider, que DEPENDE de AuthProvider

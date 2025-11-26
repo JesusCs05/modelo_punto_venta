@@ -57,7 +57,7 @@ Future<ConfirmacionEnvaseResultado?> mostrarModalConfirmarEnvase(
               context: dialogContext,
               label: 'NO (Cobrar Envase)',
               backgroundColor:
-                  AppColors.accentDanger, // #DB3026 (Rojo) [cite: 193]
+                  AppColors.accentCta, // #DB3026 (Rojo) [cite: 193]
               result: ConfirmacionEnvaseResultado.noTraeEnvase,
             ),
           ),

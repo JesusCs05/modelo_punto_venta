@@ -47,7 +47,7 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Datos del negocio'),
-        backgroundColor: AppColors.paletteLightGray,
+        backgroundColor: AppColors.cardBackground,
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -180,7 +180,7 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
                   const SizedBox(width: 12),
                   ElevatedButton(
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.accentDanger,
+                      backgroundColor: AppColors.accentCta,
                       foregroundColor: AppColors.textInverted,
                       shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(8.0),

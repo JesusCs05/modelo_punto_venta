@@ -102,14 +102,14 @@ class _UserFormContenidoState extends State<_UserFormContenido> {
     if (widget._esModoEdicion == false && password.isEmpty) {
       // Es usuario NUEVO, la contraseña es obligatoria
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('La contraseña es obligatoria para usuarios nuevos.'), backgroundColor: AppColors.accentDanger,)
+          const SnackBar(content: Text('La contraseña es obligatoria para usuarios nuevos.'), backgroundColor: AppColors.accentCta,)
       );
       return;
     }
     if (password.isNotEmpty && password != confirmPassword) {
       // Si se escribió una contraseña, debe coincidir
       ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Las contraseñas no coinciden.'), backgroundColor: AppColors.accentDanger,)
+          const SnackBar(content: Text('Las contraseñas no coinciden.'), backgroundColor: AppColors.accentCta,)
       );
       return;
     }
@@ -148,7 +148,7 @@ class _UserFormContenidoState extends State<_UserFormContenido> {
       if (mounted) {
         setState(() { _isLoading = false; });
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al guardar usuario: $e'), backgroundColor: AppColors.accentDanger,));
+            SnackBar(content: Text('Error al guardar usuario: $e'), backgroundColor: AppColors.accentCta,));
       }
     }
   }
@@ -164,7 +164,7 @@ class _UserFormContenidoState extends State<_UserFormContenido> {
       content: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _loadingError != null
-              ? Center(child: Text(_loadingError!, style: TextStyle(color: AppColors.accentDanger)))
+              ? Center(child: Text(_loadingError!, style: TextStyle(color: AppColors.accentCta)))
               : _buildForm(),
       actions: (_isLoading || _loadingError != null)
           ? [ TextButton( onPressed: () => Navigator.of(context).pop(), child: const Text('Cerrar')) ]
@@ -172,7 +172,7 @@ class _UserFormContenidoState extends State<_UserFormContenido> {
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text('Cancelar',
-                    style: TextStyle(color: AppColors.accentDanger)),
+                    style: TextStyle(color: AppColors.accentCta)),
               ),
               ElevatedButton(
                 onPressed: _guardarUsuario,

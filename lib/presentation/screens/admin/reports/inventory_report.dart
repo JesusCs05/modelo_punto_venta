@@ -63,7 +63,7 @@ class InventoryReport extends StatelessWidget {
       children: [
         _buildSummaryCard('Valor Total del Inventario (Costo)', 
                           currencyFormat.format(totalCosto), 
-                          AppColors.accentDanger),
+                          AppColors.accentCta),
         _buildSummaryCard('Valor Total del Inventario (Venta)', 
                           currencyFormat.format(totalVenta), 
                           AppColors.primary),

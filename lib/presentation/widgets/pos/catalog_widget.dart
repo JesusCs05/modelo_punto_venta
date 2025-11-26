@@ -89,7 +89,7 @@ class _CatalogWidgetState extends State<CatalogWidget> {
                     crossAxisCount: 4,
                     crossAxisSpacing: 12,
                     mainAxisSpacing: 12,
-                    childAspectRatio: 1.2, // Relación de aspecto para el Card
+                    childAspectRatio: 1.0, // Relación de aspecto para el Card
                   ),
                   itemCount: productos.length,
                   itemBuilder: (context, index) {
@@ -202,42 +202,55 @@ class _ProductGridItem extends StatelessWidget {
         elevation: 2,
         color: color,
         clipBehavior: Clip.antiAlias, // <<< Importante para recortar la imagen
-        child: Column( // Usamos Column para poner el texto debajo
-          mainAxisAlignment: MainAxisAlignment.spaceBetween, // Alinea el texto abajo
+        child: Column(
+          // Usamos Column para poner el texto debajo
+          mainAxisAlignment:
+              MainAxisAlignment.spaceBetween, // Alinea el texto abajo
           children: [
             // --- INICIO LÓGICA DE IMAGEN ---
             Expanded(
               // Verifica si la URL existe y no está vacía
-              child: (producto.imageUrl != null && producto.imageUrl!.isNotEmpty)
-                  
+              child:
+                  (producto.imageUrl != null && producto.imageUrl!.isNotEmpty)
                   // OPCIÓN 1: Si hay URL, muestra Image.network
                   ? Image.network(
                       producto.imageUrl!,
                       fit: BoxFit.cover, // Cubre el espacio disponible
                       width: double.infinity,
-                      
+
                       // Muestra un indicador de carga
                       loadingBuilder: (context, child, loadingProgress) {
                         if (loadingProgress == null) return child;
-                        return const Center(child: CircularProgressIndicator(color: Colors.white));
+                        return const Center(
+                          child: CircularProgressIndicator(color: Colors.white),
+                        );
                       },
-                      
+
                       // Muestra el ícono de fallback si la imagen falla
                       errorBuilder: (context, error, stackTrace) {
-                        return Icon(fallbackIcon, size: 40, color: AppColors.textInverted.withAlpha(150));
+                        return Icon(
+                          fallbackIcon,
+                          size: 40,
+                          color: AppColors.textInverted.withAlpha(150),
+                        );
                       },
                     )
-                  
                   // OPCIÓN 2: Si no hay URL, muestra el ícono de fallback
                   : Center(
-                      child: Icon(fallbackIcon, size: 40, color: AppColors.textInverted),
+                      child: Icon(
+                        fallbackIcon,
+                        size: 40,
+                        color: AppColors.textInverted,
+                      ),
                     ),
             ),
             // --- FIN LÓGICA DE IMAGEN ---
-            
+
             // Texto del producto
             Container(
-              color: Colors.black.withValues(alpha: 128), // Fondo oscuro para legibilidad
+              color: Colors.black.withValues(
+                alpha: 128,
+              ), // Fondo oscuro para legibilidad
               width: double.infinity,
               padding: const EdgeInsets.all(4.0),
               child: Text(

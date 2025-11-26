@@ -24,7 +24,9 @@ class _AbrirTurnoScreenState extends State<AbrirTurnoScreen> {
       return;
     }
 
-    setState(() { _isLoading = true; });
+    setState(() {
+      _isLoading = true;
+    });
 
     try {
       final fondoInicial = double.tryParse(_fondoController.text) ?? 0.0;
@@ -46,12 +48,16 @@ class _AbrirTurnoScreenState extends State<AbrirTurnoScreen> {
         MaterialPageRoute(builder: (context) => const PosScreen()),
         (route) => false, // Limpiar historial
       );
-
     } catch (e) {
       if (!mounted) return;
-      setState(() { _isLoading = false; });
+      setState(() {
+        _isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Error: ${e.toString()}'), backgroundColor: AppColors.accentDanger),
+        SnackBar(
+          content: Text('Error: ${e.toString()}'),
+          backgroundColor: AppColors.accentCta,
+        ),
       );
     }
   }
@@ -65,7 +71,7 @@ class _AbrirTurnoScreenState extends State<AbrirTurnoScreen> {
   @override
   Widget build(BuildContext context) {
     final authProvider = context.watch<AuthProvider>();
-    
+
     return Scaffold(
       backgroundColor: AppColors.background,
       body: Center(
@@ -83,7 +89,11 @@ class _AbrirTurnoScreenState extends State<AbrirTurnoScreen> {
                   children: [
                     Text(
                       'Abrir Turno',
-                      style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     Text(
@@ -96,11 +106,17 @@ class _AbrirTurnoScreenState extends State<AbrirTurnoScreen> {
                       decoration: InputDecoration(
                         labelText: 'Fondo de Caja Inicial',
                         prefixText: '\$ ',
-                        border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
                       ),
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       inputFormatters: [
-                        FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d{0,2}'))
+                        FilteringTextInputFormatter.allow(
+                          RegExp(r'^\d+\.?\d{0,2}'),
+                        ),
                       ],
                       validator: (value) {
                         if (value == null || value.isEmpty) {
@@ -122,11 +138,16 @@ class _AbrirTurnoScreenState extends State<AbrirTurnoScreen> {
                           backgroundColor: AppColors.primary,
                           foregroundColor: AppColors.textInverted,
                         ),
-                        child: _isLoading 
-                            ? const CircularProgressIndicator(color: AppColors.textInverted)
-                            : const Text('Iniciar Turno', style: TextStyle(fontSize: 18)),
+                        child: _isLoading
+                            ? const CircularProgressIndicator(
+                                color: AppColors.textInverted,
+                              )
+                            : const Text(
+                                'Iniciar Turno',
+                                style: TextStyle(fontSize: 18),
+                              ),
                       ),
-                    )
+                    ),
                   ],
                 ),
               ),

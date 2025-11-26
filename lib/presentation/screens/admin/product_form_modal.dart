@@ -186,7 +186,7 @@ class _ProductFormContenidoState extends State<_ProductFormContenido> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error: ${e.toString().replaceFirst("Exception: ", "")}'),
-            backgroundColor: AppColors.accentDanger,
+            backgroundColor: AppColors.accentCta,
           ),
         );
       }
@@ -208,7 +208,7 @@ class _ProductFormContenidoState extends State<_ProductFormContenido> {
               ? Center(
                   child: Text(
                     _loadingError!,
-                    style: TextStyle(color: AppColors.accentDanger),
+                    style: TextStyle(color: AppColors.accentCta),
                   ),
                 )
               : _buildForm(),
@@ -224,7 +224,7 @@ class _ProductFormContenidoState extends State<_ProductFormContenido> {
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text(
                   'Cancelar',
-                  style: TextStyle(color: AppColors.accentDanger),
+                  style: TextStyle(color: AppColors.accentCta),
                 ),
               ),
               ElevatedButton(

@@ -102,7 +102,7 @@ class _InventoryMovementFormState extends State<_InventoryMovementForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
             content: Text('Error: Usuario no autenticado.'),
-            backgroundColor: AppColors.accentDanger,
+            backgroundColor: AppColors.accentCta,
           ),
         );
       }
@@ -156,7 +156,7 @@ class _InventoryMovementFormState extends State<_InventoryMovementForm> {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Error al guardar movimiento: $e'),
-            backgroundColor: AppColors.accentDanger,
+            backgroundColor: AppColors.accentCta,
           ),
         );
       }
@@ -177,7 +177,7 @@ class _InventoryMovementFormState extends State<_InventoryMovementForm> {
           ? Center(
               child: Text(
                 _loadingError!,
-                style: TextStyle(color: AppColors.accentDanger),
+                style: TextStyle(color: AppColors.accentCta),
               ),
             )
           : _buildForm(),
@@ -193,7 +193,7 @@ class _InventoryMovementFormState extends State<_InventoryMovementForm> {
                 onPressed: () => Navigator.of(context).pop(),
                 child: const Text(
                   'Cancelar',
-                  style: TextStyle(color: AppColors.accentDanger),
+                  style: TextStyle(color: AppColors.accentCta),
                 ),
               ),
               ElevatedButton(

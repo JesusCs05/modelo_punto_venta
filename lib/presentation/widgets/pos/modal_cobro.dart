@@ -89,7 +89,7 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(e.toString()),
-          backgroundColor: AppColors.accentDanger,
+          backgroundColor: AppColors.accentCta,
         ),
       );
     }
@@ -104,7 +104,24 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
     bool deshabilitarBoton =
         _isSaving || pagoInvalidoEfectivo || pagoInvalidoTarjeta;
 
-    return AlertDialog(
+    return Shortcuts(
+      shortcuts: <LogicalKeySet, Intent>{
+        LogicalKeySet(LogicalKeyboardKey.escape): const _CancelCobroIntent(),
+      },
+      child: Actions(
+        actions: <Type, Action<Intent>>{
+          _CancelCobroIntent: CallbackAction<_CancelCobroIntent>(
+            onInvoke: (_) {
+              if (!_isSaving) {
+                Navigator.of(context).pop(CobroResultado.cancelado);
+              }
+              return null;
+            },
+          ),
+        },
+        child: Focus(
+          autofocus: true,
+          child: AlertDialog(
       backgroundColor: AppColors.cardBackground,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       title: const Text(
@@ -124,7 +141,7 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
               style: TextStyle(
                 fontSize: 48,
                 fontWeight: FontWeight.w900,
-                color: AppColors.accentDanger,
+                color: AppColors.accentCta,
               ),
             ),
             const Divider(height: 32),
@@ -151,7 +168,7 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
               : () => Navigator.of(context).pop(CobroResultado.cancelado),
           child: const Text(
             'Cancelar',
-            style: TextStyle(color: AppColors.accentDanger),
+            style: TextStyle(color: AppColors.accentCta),
           ),
         ),
         SizedBox(
@@ -171,6 +188,9 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
           ),
         ),
       ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -271,4 +291,9 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
       ],
     );
   }
+}
+
+// Intent para cancelar cobro con Escape
+class _CancelCobroIntent extends Intent {
+  const _CancelCobroIntent();
 }
