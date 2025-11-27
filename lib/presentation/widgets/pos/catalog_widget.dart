@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 // Archivo: lib/presentation/widgets/pos/catalog_widget.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
@@ -18,29 +20,52 @@ class CatalogWidget extends StatefulWidget {
 
 class _CatalogWidgetState extends State<CatalogWidget> {
   String _searchTerm = '';
+  bool _snackShownNoProducts = false;
+  bool _snackShownAllOutOfStock = false;
 
   void _onProductoSeleccionado(BuildContext context, Producto producto) async {
     final cart = context.read<CartProvider>();
-    final currentContext = context;
 
     await producto.tipoProducto.load();
     final tipoNombre = producto.tipoProducto.value?.nombre;
 
     if (tipoNombre == 'Líquido') {
       final resultado = await mostrarModalConfirmarEnvase(
-        currentContext,
+        context,
         producto.nombre,
       );
 
-      if (!currentContext.mounted) return;
+      if (!mounted) return;
 
+      bool added = false;
       if (resultado == ConfirmacionEnvaseResultado.siTraeEnvase) {
-        cart.addProduct(producto, withEnvase: false);
+        added = await cart.addProduct(producto, withEnvase: false);
       } else if (resultado == ConfirmacionEnvaseResultado.noTraeEnvase) {
-        cart.addProduct(producto, withEnvase: true);
+        added = await cart.addProduct(producto, withEnvase: true);
+      }
+
+      if (!added && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Stock insuficiente. Stock actual: ${producto.stockActual}',
+            ),
+            backgroundColor: AppColors.accentCta,
+          ),
+        );
       }
     } else {
-      cart.addProduct(producto, withEnvase: false);
+      final added = await cart.addProduct(producto, withEnvase: false);
+      if (!added && mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              'Stock insuficiente. Stock actual: ${producto.stockActual}',
+            ),
+            backgroundColor: AppColors.accentCta,
+          ),
+        );
+      }
     }
   }
 
@@ -76,12 +101,42 @@ class _CatalogWidgetState extends State<CatalogWidget> {
                       .findAllSync();
                 }
                 if (productos.isEmpty) {
+                  // Mostrar mensaje en UI y un SnackBar una sola vez
+                  if (!_snackShownNoProducts) {
+                    WidgetsBinding.instance.addPostFrameCallback((_) {
+                      if (!mounted) return;
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(
+                          content: Text('No se encontraron productos.'),
+                          backgroundColor: AppColors.accentCta,
+                        ),
+                      );
+                    });
+                    _snackShownNoProducts = true;
+                  }
+
                   return const Center(
                     child: Text(
                       'No se encontraron productos.',
                       style: TextStyle(color: Colors.grey),
                     ),
                   );
+                }
+
+                // Si hay productos pero ninguno tiene stock disponible,
+                // mostramos un SnackBar informando que no hay existencias.
+                final anyAvailable = productos.any((p) => p.stockActual > 0);
+                if (!anyAvailable && !_snackShownAllOutOfStock) {
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('No hay productos con existencia.'),
+                        backgroundColor: AppColors.accentCta,
+                      ),
+                    );
+                  });
+                  _snackShownAllOutOfStock = true;
                 }
 
                 return GridView.builder(
@@ -195,78 +250,129 @@ class _ProductGridItem extends StatelessWidget {
     final tipoNombre = producto.tipoProducto.value?.nombre ?? 'Normal';
     final fallbackIcon = _getIconForProduct(tipoNombre);
 
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(8),
-      child: Card(
-        elevation: 2,
-        color: color,
-        clipBehavior: Clip.antiAlias, // <<< Importante para recortar la imagen
-        child: Column(
-          // Usamos Column para poner el texto debajo
-          mainAxisAlignment:
-              MainAxisAlignment.spaceBetween, // Alinea el texto abajo
-          children: [
-            // --- INICIO LÓGICA DE IMAGEN ---
-            Expanded(
-              // Verifica si la URL existe y no está vacía
-              child:
-                  (producto.imageUrl != null && producto.imageUrl!.isNotEmpty)
-                  // OPCIÓN 1: Si hay URL, muestra Image.network
-                  ? Image.network(
-                      producto.imageUrl!,
-                      fit: BoxFit.cover, // Cubre el espacio disponible
-                      width: double.infinity,
+    final available = producto.stockActual > 0;
 
-                      // Muestra un indicador de carga
-                      loadingBuilder: (context, child, loadingProgress) {
-                        if (loadingProgress == null) return child;
-                        return const Center(
-                          child: CircularProgressIndicator(color: Colors.white),
-                        );
-                      },
-
-                      // Muestra el ícono de fallback si la imagen falla
-                      errorBuilder: (context, error, stackTrace) {
-                        return Icon(
-                          fallbackIcon,
-                          size: 40,
-                          color: AppColors.textInverted.withAlpha(150),
-                        );
-                      },
-                    )
-                  // OPCIÓN 2: Si no hay URL, muestra el ícono de fallback
-                  : Center(
-                      child: Icon(
-                        fallbackIcon,
-                        size: 40,
-                        color: AppColors.textInverted,
-                      ),
+    return Opacity(
+      opacity: available ? 1.0 : 0.45,
+      child: Stack(
+        children: [
+          InkWell(
+            onTap: () {
+              if (available) {
+                onTap();
+              } else {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      'Stock insuficiente. Stock actual: ${producto.stockActual}',
                     ),
-            ),
-            // --- FIN LÓGICA DE IMAGEN ---
+                    backgroundColor: AppColors.accentCta,
+                  ),
+                );
+              }
+            },
+            borderRadius: BorderRadius.circular(8),
+            child: Card(
+              elevation: 2,
+              color: color,
+              clipBehavior:
+                  Clip.antiAlias, // <<< Importante para recortar la imagen
+              child: Column(
+                // Usamos Column para poner el texto debajo
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceBetween, // Alinea el texto abajo
+                children: [
+                  // --- INICIO LÓGICA DE IMAGEN ---
+                  Expanded(
+                    // Verifica si la URL existe y no está vacía
+                    child:
+                        (producto.imageUrl != null &&
+                            producto.imageUrl!.isNotEmpty)
+                        // OPCIÓN 1: Si hay URL, muestra Image.network
+                        ? Image.network(
+                            producto.imageUrl!,
+                            fit: BoxFit.cover, // Cubre el espacio disponible
+                            width: double.infinity,
 
-            // Texto del producto
-            Container(
-              color: Colors.black.withValues(
-                alpha: 128,
-              ), // Fondo oscuro para legibilidad
-              width: double.infinity,
-              padding: const EdgeInsets.all(4.0),
-              child: Text(
-                producto.nombre,
-                textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: AppColors.textInverted,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 12,
-                ),
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
+                            // Muestra un indicador de carga
+                            loadingBuilder: (context, child, loadingProgress) {
+                              if (loadingProgress == null) return child;
+                              return const Center(
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                ),
+                              );
+                            },
+
+                            // Muestra el ícono de fallback si la imagen falla
+                            errorBuilder: (context, error, stackTrace) {
+                              return Icon(
+                                fallbackIcon,
+                                size: 40,
+                                color: AppColors.textInverted.withAlpha(150),
+                              );
+                            },
+                          )
+                        // OPCIÓN 2: Si no hay URL, muestra el ícono de fallback
+                        : Center(
+                            child: Icon(
+                              fallbackIcon,
+                              size: 40,
+                              color: AppColors.textInverted,
+                            ),
+                          ),
+                  ),
+                  // --- FIN LÓGICA DE IMAGEN ---
+
+                  // Texto del producto
+                  Container(
+                    color: Colors.black.withValues(
+                      alpha: 128,
+                    ), // Fondo oscuro para legibilidad
+                    width: double.infinity,
+                    padding: const EdgeInsets.all(4.0),
+                    child: Text(
+                      producto.nombre,
+                      textAlign: TextAlign.center,
+                      style: const TextStyle(
+                        color: AppColors.textInverted,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 12,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                ],
               ),
             ),
-          ],
-        ),
+          ),
+          // Overlay de 'Agotado' cuando no hay stock
+          if (!available)
+            Positioned.fill(
+              child: Container(
+                alignment: Alignment.center,
+                color: Colors.black.withOpacity(0.25),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.black.withOpacity(0.6),
+                    borderRadius: BorderRadius.circular(4),
+                  ),
+                  child: const Text(
+                    'AGOTADO',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
       ),
     );
   }

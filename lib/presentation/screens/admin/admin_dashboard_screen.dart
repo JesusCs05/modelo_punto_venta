@@ -6,6 +6,7 @@ import 'product_admin_screen.dart';
 import 'inventory_admin_screen.dart';
 import 'reports_screen.dart';
 import 'user_admin_screen.dart';
+import 'help_screen.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import 'business_settings_screen.dart';
@@ -34,6 +35,8 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
         return const UserAdminScreen();
       case 4:
         return const BackupUtils();
+      case 5:
+        return const AdminHelpScreen();
 
       default:
         return const ProductAdminScreen();
@@ -80,7 +83,7 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                 const Padding(
                   padding: EdgeInsets.symmetric(vertical: 20.0),
                   child: Image(
-                    image: AssetImage('lib/assets/images/app_icon.png'),
+                    image: AssetImage('lib/assets/images/app_icon_white.png'),
                     width: 50,
                     height: 50,
                   ),
@@ -123,6 +126,12 @@ class _AdminDashboardScreenState extends State<AdminDashboardScreen> {
                           label: 'Copia de seguridad',
                           icon: Icons.backup,
                           index: 4,
+                        ),
+                        const SizedBox(height: 8),
+                        _sideButton(
+                          label: 'Ayuda',
+                          icon: Icons.help_outline,
+                          index: 5,
                         ),
                       ],
                     ),

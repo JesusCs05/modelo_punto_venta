@@ -18,22 +18,25 @@ import 'package:printing/printing.dart';
 // --- FIN NUEVAS IMPORTACIONES ---
 
 // Función helper para manejar el proceso completo de cobro e impresión
-Future<void> procesarCobroCompleto(BuildContext context, CartProvider cart) async {
+Future<void> procesarCobroCompleto(
+  BuildContext context,
+  CartProvider cart,
+) async {
   final currentContext = context;
-  
+
   // Mostrar modal de cobro y esperar resultado
   final resultado = await mostrarModalCobro(currentContext, cart.total);
-  
+
   if (!currentContext.mounted) return;
-  
+
   // Si el cobro fue exitoso, preguntar por impresión
   if (resultado == CobroResultado.exitoso) {
     debugPrint('Cobro exitoso. Preguntando por ticket...');
-    
+
     final imprimir = await _mostrarOpcionImprimirHelper(currentContext);
-    
+
     if (!currentContext.mounted) return;
-    
+
     if (imprimir ?? false) {
       await _imprimirTicketHelper(currentContext, cart);
     }
@@ -53,10 +56,7 @@ Future<bool?> _mostrarOpcionImprimirHelper(BuildContext context) {
       actions: [
         TextButton(
           onPressed: () => Navigator.of(ctx).pop(false),
-          child: const Text(
-            'No',
-            style: TextStyle(color: AppColors.secondary),
-          ),
+          child: const Text('No', style: TextStyle(color: AppColors.secondary)),
         ),
         ElevatedButton(
           onPressed: () => Navigator.of(ctx).pop(true),
@@ -72,7 +72,10 @@ Future<bool?> _mostrarOpcionImprimirHelper(BuildContext context) {
 }
 
 // Helper para imprimir ticket
-Future<void> _imprimirTicketHelper(BuildContext context, CartProvider cart) async {
+Future<void> _imprimirTicketHelper(
+  BuildContext context,
+  CartProvider cart,
+) async {
   final items = cart.lastSaleItems;
   final total = cart.lastSaleTotal;
   final cajero = cart.lastSaleUser?.nombre ?? 'N/A';
@@ -167,10 +170,7 @@ Future<Uint8List> _generateTicketPdfHelper(
               'Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}',
               style: const pw.TextStyle(fontSize: 8),
             ),
-            pw.Text(
-              'Cajero: $cajero',
-              style: const pw.TextStyle(fontSize: 8),
-            ),
+            pw.Text('Cajero: $cajero', style: const pw.TextStyle(fontSize: 8)),
             pw.SizedBox(height: 5),
             pw.Divider(thickness: 1, borderStyle: pw.BorderStyle.dashed),
             pw.Row(
@@ -294,7 +294,8 @@ class CartWidget extends StatefulWidget {
 }
 
 // Clave global para acceder al estado del CartWidget desde fuera
-final GlobalKey<_CartWidgetState> cartWidgetKey = GlobalKey<_CartWidgetState>();
+// Se usa `GlobalKey` sin parametrizar para evitar exponer el tipo privado
+final GlobalKey cartWidgetKey = GlobalKey();
 
 class _CartWidgetState extends State<CartWidget> {
   int? _selectedIndex;
@@ -345,7 +346,8 @@ class _CartWidgetState extends State<CartWidget> {
         // Asegurar que el índice seleccionado sea válido
         if (cart.items.isEmpty) {
           _selectedIndex = null;
-        } else if (_selectedIndex == null || _selectedIndex! >= cart.items.length) {
+        } else if (_selectedIndex == null ||
+            _selectedIndex! >= cart.items.length) {
           _selectedIndex = 0;
         }
         return Container(
@@ -393,10 +395,7 @@ class _CartWidgetState extends State<CartWidget> {
                 ),
               ),
               _CartTotal(cart: cart),
-              _CartActions(
-                cart: cart,
-                selectedIndex: _selectedIndex,
-              ),
+              _CartActions(cart: cart, selectedIndex: _selectedIndex),
             ],
           ),
         );
@@ -476,6 +475,7 @@ class _CartList extends StatelessWidget {
                     final controller = TextEditingController(
                       text: item.cantidad.toString(),
                     );
+                    final scaffold = ScaffoldMessenger.of(context);
                     final result = await showDialog<int>(
                       context: context,
                       builder: (ctx) {
@@ -514,7 +514,7 @@ class _CartList extends StatelessWidget {
                     if (result != null) {
                       final ok = cart.setQuantity(item.producto, result);
                       if (!ok) {
-                        ScaffoldMessenger.of(context).showSnackBar(
+                        scaffold.showSnackBar(
                           SnackBar(
                             content: Text(
                               'Stock insuficiente. Stock actual: ${item.producto.stockActual}',

@@ -1,10 +1,11 @@
+// ignore_for_file: use_build_context_synchronously
+
 // Archivo: lib/presentation/screens/admin/business_settings_screen.dart
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/business_provider.dart';
 import '../../../data/models/business_info.dart';
 import '../../theme/app_colors.dart';
-
 
 class BusinessSettingsScreen extends StatefulWidget {
   const BusinessSettingsScreen({super.key});
@@ -64,9 +65,7 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide: const BorderSide(
-                      color: AppColors.primary,
-                    ),
+                    borderSide: const BorderSide(color: AppColors.primary),
                   ),
                   filled: true,
                   fillColor: AppColors.textInverted,
@@ -84,9 +83,7 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide: const BorderSide(
-                      color: AppColors.primary,
-                    ),
+                    borderSide: const BorderSide(color: AppColors.primary),
                   ),
                   filled: true,
                   fillColor: AppColors.cardBackground,
@@ -102,9 +99,7 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide: const BorderSide(
-                      color: AppColors.primary,
-                    ),
+                    borderSide: const BorderSide(color: AppColors.primary),
                   ),
                   filled: true,
                   fillColor: AppColors.cardBackground,
@@ -120,9 +115,7 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide: const BorderSide(
-                      color: AppColors.primary,
-                    ),
+                    borderSide: const BorderSide(color: AppColors.primary),
                   ),
                   filled: true,
                   fillColor: AppColors.cardBackground,
@@ -138,9 +131,7 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
                   ),
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8.0),
-                    borderSide: const BorderSide(
-                      color: AppColors.primary,
-                    ),
+                    borderSide: const BorderSide(color: AppColors.primary),
                   ),
                   filled: true,
                   fillColor: AppColors.cardBackground,
@@ -159,6 +150,7 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
                         ),
                       ),
                       onPressed: () async {
+                        final scaffold = ScaffoldMessenger.of(context);
                         if (!_formKey.currentState!.validate()) return;
                         final newInfo = BusinessInfo(
                           nombre: _nombreController.text.trim(),
@@ -168,11 +160,9 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
                           rfc: _rfcController.text.trim(),
                         );
                         await context.read<BusinessProvider>().save(newInfo);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Datos guardados')),
-                          );
-                        }
+                        scaffold.showSnackBar(
+                          const SnackBar(content: Text('Datos guardados')),
+                        );
                       },
                       child: const Text('Guardar'),
                     ),
@@ -187,6 +177,7 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
                       ),
                     ),
                     onPressed: () async {
+                      final scaffold = ScaffoldMessenger.of(context);
                       await context.read<BusinessProvider>().reset();
                       final info = context.read<BusinessProvider>().info;
                       _nombreController.text = info.nombre;
@@ -194,13 +185,11 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
                       _telefonoController.text = info.telefono;
                       _direccionController.text = info.direccion;
                       _rfcController.text = info.rfc;
-                      if (context.mounted) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Restaurado a valores por defecto'),
-                          ),
-                        );
-                      }
+                      scaffold.showSnackBar(
+                        const SnackBar(
+                          content: Text('Restaurado a valores por defecto'),
+                        ),
+                      );
                     },
                     child: const Text('Restaurar'),
                   ),

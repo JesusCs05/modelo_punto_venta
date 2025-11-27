@@ -1,3 +1,5 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../utils/backup_utils.dart';
@@ -11,15 +13,14 @@ class BackupUtils extends StatefulWidget {
 
 class _BackupUtilsState extends State<BackupUtils> {
   Future<void> _doExport(BuildContext context) async {
+    final scaffold = ScaffoldMessenger.of(context);
     try {
-      final dest = await exportDatabase(context);
+      final dest = await exportDatabase();
       if (dest != null) {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Exportado a: $dest')));
+        scaffold.showSnackBar(SnackBar(content: Text('Exportado a: $dest')));
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffold.showSnackBar(
         SnackBar(
           content: Text('Error exportando: ${e.toString()}'),
           backgroundColor: AppColors.accentCta,
@@ -29,10 +30,11 @@ class _BackupUtilsState extends State<BackupUtils> {
   }
 
   Future<void> _doImport(BuildContext context) async {
+    final scaffold = ScaffoldMessenger.of(context);
     try {
-      final imported = await importDatabase(context);
+      final imported = await importDatabase();
       if (imported != null) {
-        ScaffoldMessenger.of(context).showSnackBar(
+        scaffold.showSnackBar(
           const SnackBar(
             content: Text(
               'Importación completada. Reinicia la app si es necesario.',
@@ -41,7 +43,7 @@ class _BackupUtilsState extends State<BackupUtils> {
         );
       }
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
+      scaffold.showSnackBar(
         SnackBar(
           content: Text('Error importando: ${e.toString()}'),
           backgroundColor: AppColors.accentCta,

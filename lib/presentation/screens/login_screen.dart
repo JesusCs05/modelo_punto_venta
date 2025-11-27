@@ -23,6 +23,7 @@ class _LoginScreenState extends State<LoginScreen> {
   final _userController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
+  bool _obscurePassword = true;
 
   Future<void> _login() async {
     // ... (Tu código de login se queda igual)
@@ -124,9 +125,22 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 20),
                     TextFormField(
                       controller: _passwordController,
-                      decoration: _buildInputDecoration('Contraseña'),
+                      decoration: _buildInputDecoration(
+                        'Contraseña',
+                        suffixIcon: IconButton(
+                          icon: Icon(
+                            _obscurePassword
+                                ? Icons.visibility
+                                : Icons.visibility_off,
+                            color: AppColors.primary,
+                          ),
+                          onPressed: () => setState(
+                            () => _obscurePassword = !_obscurePassword,
+                          ),
+                        ),
+                      ),
                       style: const TextStyle(color: AppColors.textPrimary),
-                      obscureText: true,
+                      obscureText: _obscurePassword,
                       validator: (value) => (value?.isEmpty ?? true)
                           ? 'Ingrese su contraseña'
                           : null,
@@ -169,12 +183,13 @@ class _LoginScreenState extends State<LoginScreen> {
     );
   }
 
-  InputDecoration _buildInputDecoration(String label) {
+  InputDecoration _buildInputDecoration(String label, {Widget? suffixIcon}) {
     return InputDecoration(
       labelText: label,
       labelStyle: const TextStyle(color: AppColors.primary),
       filled: true,
       fillColor: AppColors.cardBackground.withAlpha(128),
+      suffixIcon: suffixIcon,
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(8),
         borderSide: const BorderSide(color: AppColors.primary, width: 1.5),

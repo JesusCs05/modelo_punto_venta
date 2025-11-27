@@ -8,6 +8,7 @@ import '../widgets/pos/catalog_widget.dart';
 import '../widgets/pos/cart_widget.dart';
 import '../services/window_close_service.dart';
 import '../providers/cart_provider.dart';
+import 'help_screen.dart';
 
 class PosScreen extends StatefulWidget {
   const PosScreen({super.key});
@@ -95,6 +96,18 @@ class _PosScreenState extends State<PosScreen> {
                 Expanded(flex: 3, child: CatalogWidget()),
               ],
             ),
+            // Botón de ayuda pequeño en la esquina inferior derecha
+            floatingActionButton: FloatingActionButton.small(
+              heroTag: 'pos_help_btn',
+              onPressed: () => Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const HelpScreen())),
+              tooltip: 'Ayuda',
+              child: const Icon(Icons.help_outline),
+              backgroundColor: AppColors.primary,
+              foregroundColor: AppColors.textInverted,
+            ),
+            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           ),
         ),
       ),
@@ -102,11 +115,11 @@ class _PosScreenState extends State<PosScreen> {
   }
 
   void _handleIncrementProduct(BuildContext context) {
-    cartWidgetKey.currentState?.incrementSelected();
+    (cartWidgetKey.currentState as dynamic)?.incrementSelected();
   }
 
   void _handleDecrementProduct(BuildContext context) {
-    cartWidgetKey.currentState?.decrementSelected();
+    (cartWidgetKey.currentState as dynamic)?.decrementSelected();
   }
 
   Future<void> _handleCharge(BuildContext context) async {

@@ -2,93 +2,63 @@
 import 'package:flutter/material.dart';
 
 /*
- * Guía de Estilos Visuales (Paleta "Corporativa Marina/Oro")
- * Basado en la imagen proporcionada.
+ * Guía de Estilos Visuales (Paleta "Innovación Púrpura")
+ * Basado en el color semilla #62065f.
  */
-/*class AppColors {
-  // --- Colores de la paleta (Referencia) ---
-  static const Color paletteYellowOrange = Color(0xFFF4A928);
-  static const Color paletteGold = Color(0xFFDDB82F);
-  static const Color paletteNavy = Color(0xFF182F4E);
-  static const Color paletteSlateGray = Color(0xFF738290);
-  static const Color paletteLightGray = Color(0xFFB8C2CC);
-  static const Color paletteWhite = Color(0xFFFFFFFF);
-  
-  // --- Roles Funcionales de la App ---
-
-  /// Fondo Principal: #B8C2CC (Gris Claro)
-  static const Color background = paletteLightGray;
-
-  /// Primario / Éxito: #182F4E (Azul Marino Oscuro)
-  /// Usado para confirmación ("SÍ", "Ingresar").
-  static const Color primary = paletteNavy;
-
-  /// Acento / Peligro / CTA: #F4A928 (Naranja-Amarillo)
-  /// Usado para el CTA principal ("Cobrar") y acciones de "Peligro" ("NO").
-  static const Color accentDanger = paletteYellowOrange;
-
-  /// Secundario / Acento Cálido: #738290 (Gris Pizarra)
-  /// Usado para botones secundarios ("Cancelar Venta").
-  static const Color secondary = paletteSlateGray;
-
-  /// Resaltado / Información: #DDB82F (Dorado)
-  static const Color highlight = paletteGold;
-
-  // --- Colores de Texto ---
-  
-  /// Texto Principal (Sobre Fondo Gris Claro): #182F4E (Azul Marino)
-  /// Proporciona el mejor contraste contra el fondo gris claro.
-  static const Color textPrimary = paletteNavy;
-
-  /// Texto Invertido (Sobre Azul/Amarillo/Gris): #FFFFFF
-  static const Color textInverted = paletteWhite;
-  
-  /// Fondo de Tarjetas/Listas (Blanco)
-  /// (Mantenemos blanco para mejor contraste sobre el fondo gris)
-  static const Color cardBackground = paletteWhite;
-}
-*/
 class AppColors {
   // --- Colores de la paleta (Referencia) ---
-  static const Color paletteCobaltBlue = Color(0xFF0047AB);
-  static const Color paletteBrightOrange = Color(0xFFF28C28);
-  static const Color paletteGraphite = Color(0xFF4C4C4C);
-  static const Color paletteLightGray = Color(0xFFF4F6F8); // Un gris muy claro y limpio
-  static const Color paletteSlateGray = Color(0xFF738290);
+  
+  // El color base solicitado: Púrpura Profundo / Ciruela
+  static const Color paletteDeepPurple = Color(0xFF62065F); 
+  
+  // Complemento vibrante para botones de acción: Coral Neón / Naranja Rojizo
+  // (El naranja/coral contrasta perfectamente con el púrpura y mantiene la energía "Ágil")
+  static const Color paletteVibrantCoral = Color(0xFFFF6B6B); 
+  
+  // Neutro oscuro para textos: Carbón Violáceo
+  static const Color paletteDarkCharcoal = Color(0xFF2D242C); 
+  
+  // Fondo: Blanco Lavanda (Muy sutil, menos clínico que el gris, más cálido)
+  static const Color paletteLavenderMist = Color(0xFFF9F7FA); 
+  
+  // Secundario: Gris Pizarra con tinte lila
+  static const Color paletteSlateLilac = Color(0xFF8C7D8F);
+  
   static const Color paletteWhite = Color(0xFFFFFFFF);
   
   // --- Roles Funcionales de la App ---
 
-  /// Fondo Principal: #F4F6F8 (Gris Claro)
-  /// Un fondo neutro y moderno.
-  static const Color background = paletteLightGray;
+  /// Fondo Principal: #F9F7FA (Blanco Lavanda)
+  /// Un fondo limpio que armoniza con el púrpura sin cansar la vista.
+  static const Color background = paletteLavenderMist;
 
-  /// Primario / Éxito: #0047AB (Azul Cobalto)
-  /// Usado para confirmación ("SÍ", "Ingresar"). Color de confianza.
-  static const Color primary = paletteCobaltBlue;
+  /// Primario / Éxito: #62065F (Púrpura Profundo)
+  /// Usado para la barra superior, login y confirmaciones estándar ("SÍ").
+  /// Transmite robustez y elegancia.
+  static const Color primary = paletteDeepPurple;
 
-  /// Acento / CTA / Peligro: #F28C28 (Naranja Brillante)
-  /// Usado para el CTA principal ("Cobrar") y acciones de "Peligro" ("NO").
-  /// Es un color de alta visibilidad.
-  static const Color accentCta = paletteBrightOrange;
+  /// Acento / CTA / Peligro: #FF6B6B (Coral Vibrante)
+  /// Usado para el botón principal ("COBRAR") y alertas.
+  /// Es un color de "Alta Velocidad" que destaca inmediatamente sobre el púrpura.
+  static const Color accentCta = paletteVibrantCoral;
 
-  /// Secundario / Acento Frío: #738290 (Gris Pizarra)
-  /// Usado para botones secundarios ("Cancelar Venta").
-  static const Color secondary = paletteSlateGray;
+  /// Secundario / Acento Frío: #8C7D8F (Gris Pizarra Lila)
+  /// Usado para botones secundarios ("Cancelar Venta", "Recibir Envases").
+  static const Color secondary = paletteSlateLilac;
 
-  /// Resaltado / Información: #0047AB (Azul Cobalto)
-  static const Color highlight = paletteCobaltBlue;
+  /// Resaltado / Información: #62065F (Mismo que primario o una variante más clara)
+  static const Color highlight = paletteDeepPurple;
 
   // --- Colores de Texto ---
   
-  /// Texto Principal (Sobre Fondo Gris Claro): #4C4C4C (Grafito)
-  /// Contraste nítido y moderno.
-  static const Color textPrimary = paletteGraphite;
+  /// Texto Principal: #2D242C (Carbón Oscuro)
+  /// Máxima legibilidad sobre el fondo claro.
+  static const Color textPrimary = paletteDarkCharcoal;
 
-  /// Texto Invertido (Sobre Azul/Naranja/Gris): #FFFFFF
+  /// Texto Invertido: #FFFFFF (Blanco)
+  /// Para usar sobre el Púrpura (#62065F) y el Coral (#FF6B6B).
   static const Color textInverted = paletteWhite;
   
-  /// Fondo de Tarjetas/Listas (Blanco)
-  /// El blanco puro destaca sobre el fondo gris claro.
+  /// Fondo de Tarjetas/Listas (Blanco Puro)
   static const Color cardBackground = paletteWhite;
 }

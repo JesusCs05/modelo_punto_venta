@@ -75,7 +75,9 @@ Future<void> main() async {
         ChangeNotifierProvider(create: (context) => TurnoProvider()),
 
         // BusinessProvider: carga la información del negocio desde SharedPreferences
-        ChangeNotifierProvider(create: (context) => BusinessProvider(isar)..load()),
+        ChangeNotifierProvider(
+          create: (context) => BusinessProvider(isar)..load(),
+        ),
 
         // --- AÑADE ESTO AQUÍ ---
         // CartProvider, que DEPENDE de AuthProvider
@@ -194,9 +196,9 @@ class _MyWindowListener with WindowListener {
     // aplicación (para que podamos manejar cierres desde Dart). Aquí no es
     // necesario volver a setearlo.
 
-    final context = navigatorKey.currentState?.overlay?.context;
-    if (context == null) {
-      debugPrint('No context - allowing close');
+    final navigator = navigatorKey.currentState;
+    if (navigator == null || navigator.overlay == null) {
+      debugPrint('No navigator/context - allowing close');
       await windowManager.setPreventClose(false);
       await windowManager.close();
       return;
@@ -210,8 +212,12 @@ class _MyWindowListener with WindowListener {
         // --- CASO 1: ESTÁ EN LA PANTALLA DE VENTAS ---
         debugPrint('Mostrando diálogo de CORTE DE CAJA (Flutter dialog)');
 
+        // Usar el context del navigator al mostrar el diálogo. El linter
+        // puede advertir sobre uso de BuildContext tras await; este context
+        // se obtiene justo antes de invocar el diálogo.
+        // ignore: use_build_context_synchronously
         final wantCorte = await showDialog<bool>(
-          context: context,
+          context: navigator.overlay!.context,
           builder: (ctx) => AlertDialog(
             title: const Text('¿Desea salir?'),
             content: const Text(
@@ -232,7 +238,10 @@ class _MyWindowListener with WindowListener {
 
         if (wantCorte == true) {
           // El usuario quiere hacer el corte.
-          final result = await mostrarModalCerrarTurno(context);
+          // ignore: use_build_context_synchronously
+          final result = await mostrarModalCerrarTurno(
+            navigator.overlay!.context,
+          );
           if (result == CierreTurnoResultado.exitoso) {
             // El corte fue exitoso, permitir el cierre.
             confirmClose = true;
@@ -243,8 +252,9 @@ class _MyWindowListener with WindowListener {
       } else {
         // --- CASO 2: NO ESTÁ EN LA PANTALLA DE VENTAS (p.ej. Login) ---
         debugPrint('Mostrando diálogo de CONFIRMAR SALIDA (Flutter dialog)');
+        // ignore: use_build_context_synchronously
         final confirm = await showDialog<bool>(
-          context: context,
+          context: navigator.overlay!.context,
           builder: (ctx) => AlertDialog(
             title: const Text('Confirmar Salida'),
             content: const Text(

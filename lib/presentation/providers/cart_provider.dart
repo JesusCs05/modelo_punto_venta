@@ -79,7 +79,10 @@ class CartProvider with ChangeNotifier {
   String get lastSalePaymentMethod => _lastSalePaymentMethod;
   Usuario? get lastSaleUser => _lastSaleUser;
 
-  Future<void> addProduct(Producto producto, {bool withEnvase = false}) async {
+  /// Intenta agregar un producto al carrito.
+  /// Devuelve `true` si el producto fue agregado o incrementado, `false` si no
+  /// se pudo agregar (por ejemplo, por falta de stock).
+  Future<bool> addProduct(Producto producto, {bool withEnvase = false}) async {
     if (withEnvase) {
       await producto.envaseAsociado.load();
       final envase = producto.envaseAsociado.value;
@@ -87,15 +90,28 @@ class CartProvider with ChangeNotifier {
         _addOrUpdate(envase);
       }
     }
+
+    // Validar stock antes de agregar el producto al carrito.
+    // Si no hay stock, no se agrega.
+    if (producto.stockActual <= 0) {
+      return false;
+    }
+
     _addOrUpdate(producto);
     notifyListeners();
+    return true;
   }
 
   void _addOrUpdate(Producto producto) {
     final index = _items.indexWhere((item) => item.producto.id == producto.id);
     if (index != -1) {
-      _items[index].cantidad++;
+      final current = _items[index];
+      // Evitar incrementar si supera el stock disponible
+      if (current.cantidad + 1 > producto.stockActual) return;
+      current.cantidad++;
     } else {
+      // Sólo agregar si hay stock disponible
+      if (producto.stockActual <= 0) return;
       _items.add(CartItem(producto: producto));
     }
   }

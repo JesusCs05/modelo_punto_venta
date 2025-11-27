@@ -1,6 +1,5 @@
 // Archivo: lib/presentation/utils/backup_utils.dart
 import 'dart:io';
-import 'package:flutter/material.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 import 'package:file_picker/file_picker.dart';
@@ -55,7 +54,7 @@ Future<void> _reopenIsar() async {
 
 /// Exporta la base de datos a una carpeta seleccionada. Devuelve la ruta de
 /// destino si se completó, o lanza una excepción en caso de error.
-Future<String?> exportDatabase(BuildContext context) async {
+Future<String?> exportDatabase() async {
   final dbPath = await _getDbPath();
   final dbFile = File(dbPath);
   if (!await dbFile.exists()) {
@@ -90,7 +89,7 @@ Future<String?> exportDatabase(BuildContext context) async {
 
 /// Importa una base de datos seleccionada por el usuario, reemplazando la
 /// base de datos actual. Devuelve la ruta del archivo importado.
-Future<String?> importDatabase(BuildContext context) async {
+Future<String?> importDatabase() async {
   // Seleccionar archivo .isar
   final result = await FilePicker.platform.pickFiles(
     type: FileType.custom,
