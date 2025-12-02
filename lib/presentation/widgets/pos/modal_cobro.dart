@@ -122,72 +122,98 @@ class _ModalCobroContenidoState extends State<_ModalCobroContenido> {
         child: Focus(
           autofocus: true,
           child: AlertDialog(
-      backgroundColor: AppColors.cardBackground,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      title: const Text(
-        'Realizar Cobro',
-        style: TextStyle(color: AppColors.textPrimary),
-      ),
-      content: SingleChildScrollView(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              'Total a Pagar:',
-              style: TextStyle(fontSize: 18, color: AppColors.textPrimary),
+            backgroundColor: AppColors.background,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
             ),
-            Text(
-              '\$${widget.totalAPagar.toStringAsFixed(2)}',
-              style: TextStyle(
-                fontSize: 48,
-                fontWeight: FontWeight.w900,
-                color: AppColors.accentCta,
+            title: const Text(
+              'Realizar Cobro',
+              style: TextStyle(color: AppColors.textPrimary),
+            ),
+            content: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Total a Pagar:',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  Text(
+                    '\$${widget.totalAPagar.toStringAsFixed(2)}',
+                    style: TextStyle(
+                      fontSize: 48,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.accentCta,
+                    ),
+                  ),
+                  const Divider(height: 32),
+                  Row(
+                    children: [
+                      _buildMetodoPagoBoton('Efectivo', Icons.money),
+                      const SizedBox(width: 12),
+                      _buildMetodoPagoBoton('Tarjeta', Icons.credit_card),
+                    ],
+                  ),
+                  const SizedBox(height: 24),
+
+                  if (_metodoPago == 'Tarjeta')
+                    _buildLogicaTarjeta()
+                  else
+                    _buildLogicaEfectivo(),
+                ],
               ),
             ),
-            const Divider(height: 32),
-            Row(
-              children: [
-                _buildMetodoPagoBoton('Efectivo', Icons.money),
-                const SizedBox(width: 12),
-                _buildMetodoPagoBoton('Tarjeta', Icons.credit_card),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            if (_metodoPago == 'Tarjeta')
-              _buildLogicaTarjeta()
-            else
-              _buildLogicaEfectivo(),
-          ],
-        ),
-      ),
-      actions: <Widget>[
-        TextButton(
-          onPressed: _isSaving
-              ? null
-              : () => Navigator.of(context).pop(CobroResultado.cancelado),
-          child: const Text(
-            'Cancelar',
-            style: TextStyle(color: AppColors.accentCta),
-          ),
-        ),
-        SizedBox(
-          height: 50,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.textInverted,
-            ),
-            onPressed: deshabilitarBoton ? null : _finalizarVenta,
-            child: _isSaving
-                ? const CircularProgressIndicator(color: AppColors.textInverted)
-                : const Text(
-                    'Finalizar Venta',
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-          ),
-        ),
-      ],
+            actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
+            actions: <Widget>[
+              SizedBox(
+                width: double.infinity,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: _isSaving
+                          ? null
+                          : () => Navigator.of(
+                              context,
+                            ).pop(CobroResultado.cancelado),
+                      child: const Text(
+                        'Cancelar',
+                        style: TextStyle(color: AppColors.primary),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 44,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.cardBackground,
+                          foregroundColor: AppColors.primary,
+                          shape: const StadiumBorder(),
+                          elevation: 2,
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
+                        ),
+                        onPressed: deshabilitarBoton ? null : _finalizarVenta,
+                        child: _isSaving
+                            ? const SizedBox(
+                                width: 18,
+                                height: 18,
+                                child: CircularProgressIndicator(
+                                  color: AppColors.primary,
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : const Text(
+                                'Finalizar Venta',
+                                style: TextStyle(fontWeight: FontWeight.w600),
+                              ),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
           ),
         ),
       ),

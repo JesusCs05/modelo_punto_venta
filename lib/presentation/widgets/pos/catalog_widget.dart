@@ -326,8 +326,8 @@ class _ProductGridItem extends StatelessWidget {
 
                   // Texto del producto
                   Container(
-                    color: Colors.black.withValues(
-                      alpha: 128,
+                    color: Colors.black.withAlpha(
+                      128,
                     ), // Fondo oscuro para legibilidad
                     width: double.infinity,
                     padding: const EdgeInsets.all(4.0),
@@ -352,14 +352,14 @@ class _ProductGridItem extends StatelessWidget {
             Positioned.fill(
               child: Container(
                 alignment: Alignment.center,
-                color: Colors.black.withOpacity(0.25),
+                color: Colors.black.withValues(alpha: 0.25),
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.6),
+                    color: Colors.black.withValues(alpha: 0.6),
                     borderRadius: BorderRadius.circular(4),
                   ),
                   child: const Text(

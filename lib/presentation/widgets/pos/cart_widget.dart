@@ -180,9 +180,9 @@ Future<void> _imprimirTicketHelper(
 
     // Centered business name
     bytes.addAll([0x1B, 0x61, 0x01]); // ESC a 1 (center)
-    bytes.addAll(_encodeForPrinter(businessInfo.nombre + '\n'));
+    bytes.addAll(_encodeForPrinter('${businessInfo.nombre}\n'));
     if (businessInfo.razonSocial.isNotEmpty) {
-      bytes.addAll(_encodeForPrinter(businessInfo.razonSocial + '\n'));
+      bytes.addAll(_encodeForPrinter('${businessInfo.razonSocial}\n'));
     }
     if (businessInfo.telefono.isNotEmpty) {
       bytes.addAll(_encodeForPrinter('Tel: ${businessInfo.telefono}\n'));
@@ -204,15 +204,16 @@ Future<void> _imprimirTicketHelper(
       // Truncate name if too long
       final maxNameLen = 18;
       var displayName = name;
-      if (displayName.length > maxNameLen)
-        displayName = displayName.substring(0, maxNameLen - 1) + '…';
+      if (displayName.length > maxNameLen) {
+        displayName = '${displayName.substring(0, maxNameLen - 1)}…';
+      }
 
       // right align qty and subtotal
-      final rightPart = qty.padLeft(3) + ' ' + subtotal.padLeft(9);
+      final rightPart = '${qty.padLeft(3)} ${subtotal.padLeft(9)}';
       final leftPart = displayName;
       final spaces = lineWidth - (leftPart.length + rightPart.length);
       final line =
-          leftPart + (spaces > 0 ? ' ' * spaces : ' ') + rightPart + '\n';
+          '$leftPart${spaces > 0 ? ' ' * spaces : ' '}$rightPart\n';
       bytes.addAll(_encodeForPrinter(line));
     }
 
@@ -646,7 +647,18 @@ class _CartList extends StatelessWidget {
                       context: context,
                       builder: (ctx) {
                         return AlertDialog(
-                          title: const Text('Editar cantidad'),
+                          backgroundColor: AppColors.background,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(20),
+                          ),
+                          title: const Text(
+                            'Editar cantidad',
+                            style: TextStyle(
+                              color: AppColors.textPrimary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 20,
+                            ),
+                          ),
                           content: TextField(
                             controller: controller,
                             keyboardType: const TextInputType.numberWithOptions(
@@ -655,22 +667,69 @@ class _CartList extends StatelessWidget {
                             inputFormatters: [
                               FilteringTextInputFormatter.allow(RegExp(r"\d+")),
                             ],
-                            decoration: const InputDecoration(
+                            decoration: InputDecoration(
                               hintText: 'Ingrese cantidad',
+                              hintStyle: const TextStyle(color: Colors.black54),
+                              enabledBorder: const UnderlineInputBorder(
+                                borderSide: BorderSide(color: Colors.black26),
+                              ),
+                              focusedBorder: UnderlineInputBorder(
+                                borderSide: BorderSide(
+                                  color: AppColors.primary,
+                                ),
+                              ),
+                            ),
+                            style: const TextStyle(
+                              color: AppColors.textPrimary,
                             ),
                           ),
+                          actionsPadding: const EdgeInsets.fromLTRB(
+                            16,
+                            8,
+                            16,
+                            16,
+                          ),
                           actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(ctx).pop(null),
-                              child: const Text('Cancelar'),
-                            ),
-                            ElevatedButton(
-                              onPressed: () {
-                                final value =
-                                    int.tryParse(controller.text) ?? 0;
-                                Navigator.of(ctx).pop(value);
-                              },
-                              child: const Text('Aceptar'),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(ctx).pop(null),
+                                  child: const Text(
+                                    'Cancelar',
+                                    style: TextStyle(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                                SizedBox(
+                                  height: 40,
+                                  child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.cardBackground,
+                                      foregroundColor: AppColors.primary,
+                                      shape: const StadiumBorder(),
+                                      elevation: 2,
+                                      padding: const EdgeInsets.symmetric(
+                                        horizontal: 18,
+                                        vertical: 8,
+                                      ),
+                                    ),
+                                    onPressed: () {
+                                      final value =
+                                          int.tryParse(controller.text) ?? 0;
+                                      Navigator.of(ctx).pop(value);
+                                    },
+                                    child: const Text(
+                                      'Aceptar',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.w600,
+                                      ),
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         );
@@ -831,7 +890,7 @@ class _CartActions extends StatelessWidget {
             height: 65,
             child: ElevatedButton(
               // --- LÓGICA DE onPressed CORREGIDA ---
-              onPressed: cart.items.isEmpty
+              onPressed: cart.total <= 0.0
                   ? null
                   : () async {
                       await procesarCobroCompleto(context, cart);
@@ -856,7 +915,7 @@ class _CartActions extends StatelessWidget {
             // Cancelar Venta
             height: 45,
             child: ElevatedButton(
-              onPressed: cart.items.isEmpty
+              onPressed: cart.total <= 0.0
                   ? null
                   : () {
                       cart.clearCart();

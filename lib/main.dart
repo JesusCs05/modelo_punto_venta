@@ -1,6 +1,5 @@
 // Archivo: lib/main.dart
 import 'package:flutter/material.dart';
-import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart'; // 1. Import Isar
 import 'package:path_provider/path_provider.dart';
 // 2. Import ALL your collection schemas
@@ -255,13 +254,14 @@ class _MyWindowListener with WindowListener {
 
         if (wantCorte == true) {
           // El usuario quiere hacer el corte.
-          // ignore: use_build_context_synchronously
-          final result = await mostrarModalCerrarTurno(
-            navigator.overlay!.context,
-          );
-          if (result == CierreTurnoResultado.exitoso) {
-            // El corte fue exitoso, permitir el cierre.
-            confirmClose = true;
+          if (navigator.mounted) {
+            final result = await mostrarModalCerrarTurno(
+              navigator.overlay!.context,
+            );
+            if (result == CierreTurnoResultado.exitoso) {
+              // El corte fue exitoso, permitir el cierre.
+              confirmClose = true;
+            }
           }
           // Si el corte fue cancelado, confirmClose sigue en false
         }

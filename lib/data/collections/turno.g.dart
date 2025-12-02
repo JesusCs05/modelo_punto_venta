@@ -46,6 +46,11 @@ const TurnoSchema = CollectionSchema(
       id: 5,
       name: r'totalVentasEfectivo',
       type: IsarType.double,
+    ),
+    r'totalVentasTarjeta': PropertySchema(
+      id: 6,
+      name: r'totalVentasTarjeta',
+      type: IsarType.double,
     )
   },
   estimateSize: _turnoEstimateSize,
@@ -90,6 +95,7 @@ void _turnoSerialize(
   writer.writeDouble(offsets[3], object.fondoInicial);
   writer.writeDouble(offsets[4], object.totalContadoEfectivo);
   writer.writeDouble(offsets[5], object.totalVentasEfectivo);
+  writer.writeDouble(offsets[6], object.totalVentasTarjeta);
 }
 
 Turno _turnoDeserialize(
@@ -106,6 +112,7 @@ Turno _turnoDeserialize(
   object.id = id;
   object.totalContadoEfectivo = reader.readDoubleOrNull(offsets[4]);
   object.totalVentasEfectivo = reader.readDoubleOrNull(offsets[5]);
+  object.totalVentasTarjeta = reader.readDoubleOrNull(offsets[6]);
   return object;
 }
 
@@ -127,6 +134,8 @@ P _turnoDeserializeProp<P>(
     case 4:
       return (reader.readDoubleOrNull(offset)) as P;
     case 5:
+      return (reader.readDoubleOrNull(offset)) as P;
+    case 6:
       return (reader.readDoubleOrNull(offset)) as P;
     default:
       throw IsarError('Unknown property with id $propertyId');
@@ -698,6 +707,86 @@ extension TurnoQueryFilter on QueryBuilder<Turno, Turno, QFilterCondition> {
       ));
     });
   }
+
+  QueryBuilder<Turno, Turno, QAfterFilterCondition> totalVentasTarjetaIsNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNull(
+        property: r'totalVentasTarjeta',
+      ));
+    });
+  }
+
+  QueryBuilder<Turno, Turno, QAfterFilterCondition>
+      totalVentasTarjetaIsNotNull() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(const FilterCondition.isNotNull(
+        property: r'totalVentasTarjeta',
+      ));
+    });
+  }
+
+  QueryBuilder<Turno, Turno, QAfterFilterCondition> totalVentasTarjetaEqualTo(
+    double? value, {
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.equalTo(
+        property: r'totalVentasTarjeta',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Turno, Turno, QAfterFilterCondition>
+      totalVentasTarjetaGreaterThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.greaterThan(
+        include: include,
+        property: r'totalVentasTarjeta',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Turno, Turno, QAfterFilterCondition> totalVentasTarjetaLessThan(
+    double? value, {
+    bool include = false,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.lessThan(
+        include: include,
+        property: r'totalVentasTarjeta',
+        value: value,
+        epsilon: epsilon,
+      ));
+    });
+  }
+
+  QueryBuilder<Turno, Turno, QAfterFilterCondition> totalVentasTarjetaBetween(
+    double? lower,
+    double? upper, {
+    bool includeLower = true,
+    bool includeUpper = true,
+    double epsilon = Query.epsilon,
+  }) {
+    return QueryBuilder.apply(this, (query) {
+      return query.addFilterCondition(FilterCondition.between(
+        property: r'totalVentasTarjeta',
+        lower: lower,
+        includeLower: includeLower,
+        upper: upper,
+        includeUpper: includeUpper,
+        epsilon: epsilon,
+      ));
+    });
+  }
 }
 
 extension TurnoQueryObject on QueryBuilder<Turno, Turno, QFilterCondition> {}
@@ -789,6 +878,18 @@ extension TurnoQuerySortBy on QueryBuilder<Turno, Turno, QSortBy> {
       return query.addSortBy(r'totalVentasEfectivo', Sort.desc);
     });
   }
+
+  QueryBuilder<Turno, Turno, QAfterSortBy> sortByTotalVentasTarjeta() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalVentasTarjeta', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Turno, Turno, QAfterSortBy> sortByTotalVentasTarjetaDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalVentasTarjeta', Sort.desc);
+    });
+  }
 }
 
 extension TurnoQuerySortThenBy on QueryBuilder<Turno, Turno, QSortThenBy> {
@@ -875,6 +976,18 @@ extension TurnoQuerySortThenBy on QueryBuilder<Turno, Turno, QSortThenBy> {
       return query.addSortBy(r'totalVentasEfectivo', Sort.desc);
     });
   }
+
+  QueryBuilder<Turno, Turno, QAfterSortBy> thenByTotalVentasTarjeta() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalVentasTarjeta', Sort.asc);
+    });
+  }
+
+  QueryBuilder<Turno, Turno, QAfterSortBy> thenByTotalVentasTarjetaDesc() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addSortBy(r'totalVentasTarjeta', Sort.desc);
+    });
+  }
 }
 
 extension TurnoQueryWhereDistinct on QueryBuilder<Turno, Turno, QDistinct> {
@@ -911,6 +1024,12 @@ extension TurnoQueryWhereDistinct on QueryBuilder<Turno, Turno, QDistinct> {
   QueryBuilder<Turno, Turno, QDistinct> distinctByTotalVentasEfectivo() {
     return QueryBuilder.apply(this, (query) {
       return query.addDistinctBy(r'totalVentasEfectivo');
+    });
+  }
+
+  QueryBuilder<Turno, Turno, QDistinct> distinctByTotalVentasTarjeta() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addDistinctBy(r'totalVentasTarjeta');
     });
   }
 }
@@ -956,6 +1075,12 @@ extension TurnoQueryProperty on QueryBuilder<Turno, Turno, QQueryProperty> {
   QueryBuilder<Turno, double?, QQueryOperations> totalVentasEfectivoProperty() {
     return QueryBuilder.apply(this, (query) {
       return query.addPropertyName(r'totalVentasEfectivo');
+    });
+  }
+
+  QueryBuilder<Turno, double?, QQueryOperations> totalVentasTarjetaProperty() {
+    return QueryBuilder.apply(this, (query) {
+      return query.addPropertyName(r'totalVentasTarjeta');
     });
   }
 }

@@ -12,6 +12,7 @@ class Turno {
   DateTime? fechaFin;
   late double fondoInicial;
   double? totalVentasEfectivo;
+  double? totalVentasTarjeta;
   double? totalContadoEfectivo;
   double? diferencia;
 

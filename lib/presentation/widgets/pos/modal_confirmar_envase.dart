@@ -34,30 +34,31 @@ Future<ConfirmacionEnvaseResultado?> mostrarModalConfirmarEnvase(
           '¿El cliente entregó el envase vacío para "$nombreProducto"?',
           style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
         ),
-        actionsPadding: const EdgeInsets.all(16.0),
-        actionsAlignment: MainAxisAlignment.spaceBetween,
+        actionsPadding: const EdgeInsets.fromLTRB(16, 12, 16, 16),
+        actionsAlignment: MainAxisAlignment.center,
         actions: <Widget>[
-          // Botones: usar tamaños fijos responsivos en lugar de Expanded
-          // "SÍ (Solo cobrar líquido)"
+          // Colocar un único contenedor que ocupe todo el ancho disponible
+          // y apile los botones verticalmente, centrados.
           SizedBox(
-            width: (MediaQuery.of(dialogContext).size.width - 96) / 2,
-            child: _buildModalButton(
-              context: dialogContext,
-              label: 'SÍ (Solo Líquido)',
-              backgroundColor: AppColors.primary, // #7ABF66 (Verde) [cite: 192]
-              result: ConfirmacionEnvaseResultado.siTraeEnvase,
-            ),
-          ),
-          const SizedBox(width: 12),
-          // "NO (Cobrar Envase)"
-          SizedBox(
-            width: (MediaQuery.of(dialogContext).size.width - 96) / 2,
-            child: _buildModalButton(
-              context: dialogContext,
-              label: 'NO (Cobrar Envase)',
-              backgroundColor:
-                  AppColors.accentCta, // #DB3026 (Rojo) [cite: 193]
-              result: ConfirmacionEnvaseResultado.noTraeEnvase,
+            width: double.infinity,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                _buildModalButton(
+                  context: dialogContext,
+                  label: 'SÍ (Solo Líquido)',
+                  backgroundColor: AppColors.primary,
+                  result: ConfirmacionEnvaseResultado.siTraeEnvase,
+                ),
+                const SizedBox(height: 12),
+                _buildModalButton(
+                  context: dialogContext,
+                  label: 'NO (Cobrar Envase)',
+                  backgroundColor: AppColors.accentCta,
+                  result: ConfirmacionEnvaseResultado.noTraeEnvase,
+                ),
+              ],
             ),
           ),
         ],
@@ -75,6 +76,7 @@ Widget _buildModalButton({
 }) {
   return SizedBox(
     height: 60,
+    width: double.infinity,
     child: ElevatedButton(
       style: ElevatedButton.styleFrom(
         backgroundColor: backgroundColor,

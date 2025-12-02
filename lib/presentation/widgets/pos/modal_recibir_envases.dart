@@ -46,12 +46,20 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
 
   /// Carga SOLO productos de tipo 'Envase'
   Future<void> _cargarEnvases() async {
-    setState(() { _isLoading = true; _loadingError = null;});
+    setState(() {
+      _isLoading = true;
+      _loadingError = null;
+    });
     try {
       // 1. Encontrar el TipoProducto 'Envase'
-      final tipoEnvase = await isar.tipoProductos.filter().nombreEqualTo('Envase').findFirst();
+      final tipoEnvase = await isar.tipoProductos
+          .filter()
+          .nombreEqualTo('Envase')
+          .findFirst();
       if (tipoEnvase == null) {
-        throw Exception('No se encontró el Tipo de Producto "Envase" en la BD.');
+        throw Exception(
+          'No se encontró el Tipo de Producto "Envase" en la BD.',
+        );
       }
 
       // 2. Cargar solo productos de ese tipo
@@ -60,7 +68,7 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
           .tipoProducto((q) => q.idEqualTo(tipoEnvase.id))
           .sortByNombre()
           .findAll();
-      
+
       if (!mounted) return;
       setState(() {
         _envasesList = envases;
@@ -92,25 +100,35 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
     final auth = context.read<AuthProvider>();
     final usuarioID = auth.currentUserId;
     if (usuarioID == null) {
-       ScaffoldMessenger.of(context).showSnackBar(
-         const SnackBar(content: Text('Error: Usuario no identificado.'), backgroundColor: AppColors.accentCta,)
-       );
-       return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Error: Usuario no identificado.'),
+          backgroundColor: AppColors.accentCta,
+        ),
+      );
+      return;
     }
-    
-    setState(() { _isLoading = true; });
+
+    setState(() {
+      _isLoading = true;
+    });
 
     try {
       final int cantidad = int.parse(_cantidadController.text);
       if (_productoSeleccionadoID == null) return;
-      
+
       // La cantidad DEBE ser positiva
       if (cantidad <= 0) {
-         setState(() { _isLoading = false; });
-         ScaffoldMessenger.of(context).showSnackBar(
-           const SnackBar(content: Text('La cantidad debe ser un número positivo.'), backgroundColor: AppColors.accentCta,)
-         );
-         return;
+        setState(() {
+          _isLoading = false;
+        });
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('La cantidad debe ser un número positivo.'),
+            backgroundColor: AppColors.accentCta,
+          ),
+        );
+        return;
       }
 
       // 2. Usar la misma transacción de 'registrarMovimientoInventario'
@@ -122,15 +140,17 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
         if (producto == null || usuario == null) {
           throw Exception('Producto o Usuario no encontrado.');
         }
-        
+
         // RF4.2: El stock de Envase aumenta
-        producto.stockActual += cantidad; 
+        producto.stockActual += cantidad;
         await isar.productos.put(producto);
 
         final movimiento = MovimientoInventario()
           ..fecha = DateTime.now()
-          ..cantidad = cantidad // Cantidad positiva
-          ..tipoMovimiento = 'Recepcion Envase' // Tipo específico RF3.4
+          ..cantidad =
+              cantidad // Cantidad positiva
+          ..tipoMovimiento =
+              'Recepcion Envase' // Tipo específico RF3.4
           ..producto.value = producto
           ..usuario.value = usuario;
 
@@ -140,13 +160,18 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
       });
 
       if (mounted) Navigator.of(context).pop();
-
     } catch (e) {
-       debugPrint("Error saving envase reception: $e");
+      debugPrint("Error saving envase reception: $e");
       if (mounted) {
-        setState(() { _isLoading = false; });
+        setState(() {
+          _isLoading = false;
+        });
         ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text('Error al guardar recepción: $e'), backgroundColor: AppColors.accentCta,));
+          SnackBar(
+            content: Text('Error al guardar recepción: $e'),
+            backgroundColor: AppColors.accentCta,
+          ),
+        );
       }
     }
   }
@@ -154,28 +179,62 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
   @override
   Widget build(BuildContext context) {
     return AlertDialog(
-      title: const Text('Recibir Envases Vacíos',
-          style: TextStyle(color: AppColors.textPrimary)),
-      backgroundColor: AppColors.cardBackground,
+      title: const Text(
+        'Recibir Envases Vacíos',
+        style: TextStyle(color: AppColors.textPrimary),
+      ),
+      backgroundColor: AppColors.background,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
       content: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : _loadingError != null
-             ? Center(child: Text(_loadingError!, style: TextStyle(color: AppColors.accentCta)))
-             : _buildForm(),
+          ? Center(
+              child: Text(
+                _loadingError!,
+                style: TextStyle(color: AppColors.accentCta),
+              ),
+            )
+          : _buildForm(),
+      actionsPadding: const EdgeInsets.fromLTRB(16, 8, 16, 16),
       actions: (_isLoading || _loadingError != null)
-          ? [ TextButton( onPressed: () => Navigator.of(context).pop(), child: const Text('Cerrar')) ]
-          : [
+          ? [
               TextButton(
                 onPressed: () => Navigator.of(context).pop(),
-                child: const Text('Cancelar',
-                    style: TextStyle(color: AppColors.accentCta)),
+                child: const Text('Cerrar'),
               ),
-              ElevatedButton(
-                onPressed: _guardarRecepcion,
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: AppColors.textInverted),
-                child: const Text('Registrar Entrada'),
+            ]
+          : [
+              SizedBox(
+                width: double.infinity,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      child: const Text(
+                        'Cancelar',
+                        style: TextStyle(color: AppColors.primary),
+                      ),
+                    ),
+                    SizedBox(
+                      height: 44,
+                      child: ElevatedButton(
+                        onPressed: _guardarRecepcion,
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.cardBackground,
+                          foregroundColor: AppColors.primary,
+                          shape: const StadiumBorder(),
+                          elevation: 2,
+                          padding: const EdgeInsets.symmetric(horizontal: 18),
+                        ),
+                        child: const Text(
+                          'Registrar Entrada',
+                          style: TextStyle(fontWeight: FontWeight.w600),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ],
     );
@@ -195,7 +254,9 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
                 initialValue: _productoSeleccionadoID,
                 decoration: InputDecoration(
                   labelText: 'Seleccionar Tipo de Envase',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 items: _envasesList.map((envase) {
                   return DropdownMenuItem<Id>(
@@ -208,7 +269,8 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
                     _productoSeleccionadoID = value;
                   });
                 },
-                validator: (value) => value == null ? 'Seleccione un envase' : null,
+                validator: (value) =>
+                    value == null ? 'Seleccione un envase' : null,
               ),
               const SizedBox(height: 16),
 
@@ -218,7 +280,9 @@ class _ReceiveBottlesFormState extends State<_ReceiveBottlesForm> {
                 decoration: InputDecoration(
                   labelText: 'Cantidad Recibida',
                   hintText: 'Ej: 10',
-                  border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
                 ),
                 keyboardType: TextInputType.number, // Teclado numérico simple
                 validator: (value) {

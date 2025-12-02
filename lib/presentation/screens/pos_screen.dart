@@ -103,9 +103,9 @@ class _PosScreenState extends State<PosScreen> {
                 context,
               ).push(MaterialPageRoute(builder: (_) => const HelpScreen())),
               tooltip: 'Ayuda',
-              child: const Icon(Icons.help_outline),
               backgroundColor: AppColors.primary,
               foregroundColor: AppColors.textInverted,
+              child: const Icon(Icons.help_outline),
             ),
             floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           ),
@@ -124,13 +124,13 @@ class _PosScreenState extends State<PosScreen> {
 
   Future<void> _handleCharge(BuildContext context) async {
     final cart = context.read<CartProvider>();
-    if (cart.items.isEmpty) return;
+    if (cart.total <= 0.0) return;
     await procesarCobroCompleto(context, cart);
   }
 
   void _handleCancelSale(BuildContext context) {
     final cart = context.read<CartProvider>();
-    if (cart.items.isEmpty) return;
+    if (cart.total <= 0.0) return;
     cart.clearCart();
   }
 }

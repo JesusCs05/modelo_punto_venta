@@ -33,8 +33,10 @@ class TurnoProvider with ChangeNotifier {
 
       // Establecer como turno activo en el provider
       _turnoActivo = nuevoTurno;
-      
-      debugPrint('Turno ${nuevoTurno.id} abierto para ${usuario.nombre} con fondo de $fondoInicial');
+
+      debugPrint(
+        'Turno ${nuevoTurno.id} abierto para ${usuario.nombre} con fondo de $fondoInicial',
+      );
       notifyListeners();
     } catch (e) {
       debugPrint('Error al abrir turno: $e');
@@ -46,35 +48,43 @@ class TurnoProvider with ChangeNotifier {
   /// (Implementaremos la lógica completa de cálculo más adelante)
   Future<void> cerrarTurno({
     required double ventasEfectivo,
-      required double ventasTarjeta,
-      required double conteoFisicoEfectivo,
+    required double ventasTarjeta,
+    required double conteoFisicoEfectivo,
   }) async {
-      
-    if (_turnoActivo == null) throw Exception('No hay un turno activo para cerrar.');
+    if (_turnoActivo == null) {
+      throw Exception('No hay un turno activo para cerrar.');
+    }
 
     try {
       // --- Lógica de Corte X (RF3.9) ---
       final conteoEfectivo = conteoFisicoEfectivo;
-      double ventasEfectivoCalculadas = 0.0; 
-      
+      // Usar los totales calculados y pasados desde la UI/modal
+      double ventasEfectivoCalculadas = ventasEfectivo;
+      double ventasTarjetaCalculadas = ventasTarjeta;
       final turnoACerrar = _turnoActivo!;
       turnoACerrar
         ..fechaFin = DateTime.now()
-        ..totalVentasEfectivo = ventasEfectivoCalculadas // Total calculado
-        ..totalContadoEfectivo = conteoEfectivo // Total físico
-        ..diferencia = conteoEfectivo - (turnoACerrar.fondoInicial + ventasEfectivoCalculadas);
+        ..totalVentasEfectivo =
+            ventasEfectivoCalculadas // Total calculado
+        ..totalVentasTarjeta = ventasTarjetaCalculadas
+        ..totalContadoEfectivo =
+            conteoEfectivo // Total físico
+        ..diferencia =
+            conteoEfectivo -
+            (turnoACerrar.fondoInicial + ventasEfectivoCalculadas);
 
       // Guardar en la base de datos
       await isar.writeTxn(() async {
         await isar.turnos.put(turnoACerrar);
       });
-      
-      debugPrint('Turno ${turnoACerrar.id} cerrado. Diferencia: ${turnoACerrar.diferencia}');
+
+      debugPrint(
+        'Turno ${turnoACerrar.id} cerrado. Diferencia: ${turnoACerrar.diferencia}',
+      );
 
       // Limpiar el estado del provider
       _turnoActivo = null;
       notifyListeners();
-
     } catch (e) {
       debugPrint('Error al cerrar turno: $e');
       throw Exception('No se pudo cerrar el turno.');
