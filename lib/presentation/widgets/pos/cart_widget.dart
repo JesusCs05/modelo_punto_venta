@@ -212,8 +212,7 @@ Future<void> _imprimirTicketHelper(
       final rightPart = '${qty.padLeft(3)} ${subtotal.padLeft(9)}';
       final leftPart = displayName;
       final spaces = lineWidth - (leftPart.length + rightPart.length);
-      final line =
-          '$leftPart${spaces > 0 ? ' ' * spaces : ' '}$rightPart\n';
+      final line = '$leftPart${spaces > 0 ? ' ' * spaces : ' '}$rightPart\n';
       bytes.addAll(_encodeForPrinter(line));
     }
 
