@@ -1,7 +1,9 @@
 // ignore_for_file: use_build_context_synchronously
 
 // Archivo: lib/presentation/widgets/pos/catalog_widget.dart
+import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:provider/provider.dart';
 import '../../theme/app_colors.dart';
 import 'modal_confirmar_envase.dart';
@@ -22,8 +24,33 @@ class _CatalogWidgetState extends State<CatalogWidget> {
   String _searchTerm = '';
   bool _snackShownNoProducts = false;
   bool _snackShownAllOutOfStock = false;
+  final TextEditingController _scanController = TextEditingController();
+  final FocusNode _scanFocusNode = FocusNode();
+  Timer? _scanTimer;
 
-  void _onProductoSeleccionado(BuildContext context, Producto producto) async {
+  @override
+  void initState() {
+    super.initState();
+    // Asegurar que el campo de escaneo tenga foco al entrar a POS
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _scanFocusNode.requestFocus();
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _scanTimer?.cancel();
+    _scanController.dispose();
+    _scanFocusNode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _onProductoSeleccionado(
+    BuildContext context,
+    Producto producto,
+  ) async {
     final cart = context.read<CartProvider>();
 
     await producto.tipoProducto.load();
@@ -63,6 +90,86 @@ class _CatalogWidgetState extends State<CatalogWidget> {
               'Stock insuficiente. Stock actual: ${producto.stockActual}',
             ),
             backgroundColor: AppColors.accentCta,
+          ),
+        );
+      }
+    }
+  }
+
+  Future<void> _procesarEscaneo(String code) async {
+    if (code.isEmpty) return;
+
+    // Buscar por SKU exacto primero (ignorando mayúsculas/minúsculas)
+    Producto? producto = isar.productos
+        .filter()
+        .skuEqualTo(code, caseSensitive: false)
+        .findFirstSync();
+
+    // Si no encontró por SKU exacto, buscar con CONTAINS por si hay espacios o formato diferente
+    if (producto == null) {
+      producto = isar.productos
+          .filter()
+          .skuIsNotNull()
+          .skuContains(code, caseSensitive: false)
+          .findFirstSync();
+    }
+
+    // Si aún no encontró, buscar por nombre
+    if (producto == null) {
+      final resultados = isar.productos
+          .filter()
+          .nombreContains(code, caseSensitive: false)
+          .findAllSync();
+
+      // Si solo hay un resultado, usarlo automáticamente
+      if (resultados.length == 1) {
+        producto = resultados.first;
+      }
+    }
+
+    if (producto != null && mounted) {
+      // Si ya está en el carrito, incrementa cantidad y evita modal
+      final cart = context.read<CartProvider>();
+      final existsInCart = cart.items.any(
+        (it) => it.producto.id == producto!.id,
+      );
+      if (existsInCart) {
+        final ok = cart.incrementQuantity(producto);
+        if (!ok && mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Stock insuficiente. Stock actual: ${producto.stockActual}',
+              ),
+              backgroundColor: AppColors.accentCta,
+            ),
+          );
+        }
+      } else {
+        await _onProductoSeleccionado(context, producto);
+      }
+      // Limpiar y mantener el enfoque para el próximo escaneo
+      _scanController.clear();
+      setState(() {
+        _searchTerm = '';
+      });
+      // Re-enfocar después del frame
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) {
+          _scanFocusNode.requestFocus();
+        }
+      });
+    } else if (mounted) {
+      // Si no coincide, dejamos el término para búsqueda manual
+      // No limpiamos para que el usuario vea qué código se escaneó
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text(
+              'Producto no encontrado. Verifica el código SKU en la base de datos.',
+            ),
+            backgroundColor: AppColors.accentCta,
+            duration: Duration(seconds: 2),
           ),
         );
       }
@@ -174,22 +281,50 @@ class _CatalogWidgetState extends State<CatalogWidget> {
   }
 
   Widget _buildSearchBar() {
-    return TextField(
-      decoration: InputDecoration(
-        hintText: 'Escanear o buscar producto...',
-        prefixIcon: const Icon(Icons.search, color: AppColors.textPrimary),
-        filled: true,
-        fillColor: AppColors.cardBackground,
-        border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(8),
-          borderSide: BorderSide.none,
-        ),
-      ),
-      onChanged: (value) {
-        setState(() {
-          _searchTerm = value;
-        });
+    return Focus(
+      focusNode: _scanFocusNode,
+      onKeyEvent: (node, event) {
+        // Consumir Enter para que no active el atajo global de cobro
+        if (event.logicalKey == LogicalKeyboardKey.enter) {
+          return KeyEventResult.handled;
+        }
+        return KeyEventResult.ignored;
       },
+      child: TextField(
+        controller: _scanController,
+        decoration: InputDecoration(
+          hintText: 'Escanear o buscar producto...',
+          prefixIcon: const Icon(Icons.search, color: AppColors.textPrimary),
+          filled: true,
+          fillColor: AppColors.cardBackground,
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(8),
+            borderSide: BorderSide.none,
+          ),
+        ),
+        onChanged: (value) {
+          setState(() {
+            _searchTerm = value;
+          });
+
+          // Cancelar timer anterior si existe
+          _scanTimer?.cancel();
+
+          // Si el texto tiene longitud de código de barras típica (8+ caracteres)
+          // y no está vacío, asumir que es un escaneo y procesarlo automáticamente
+          if (value.trim().length >= 8) {
+            _scanTimer = Timer(const Duration(milliseconds: 300), () {
+              if (mounted && _scanController.text.trim() == value.trim()) {
+                _procesarEscaneo(value.trim());
+              }
+            });
+          }
+        },
+        onSubmitted: (value) async {
+          // Procesar el escaneo cuando se presiona Enter manualmente
+          await _procesarEscaneo(value.trim());
+        },
+      ),
     );
   }
 
