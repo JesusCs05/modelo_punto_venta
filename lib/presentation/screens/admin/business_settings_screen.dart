@@ -25,22 +25,55 @@ class _BusinessSettingsScreenState extends State<BusinessSettingsScreen> {
   @override
   void initState() {
     super.initState();
-    final info = context.read<BusinessProvider>().info;
+    final provider = context.read<BusinessProvider>();
+    final info = provider.info;
     _nombreController = TextEditingController(text: info.nombre);
     _razonController = TextEditingController(text: info.razonSocial);
     _telefonoController = TextEditingController(text: info.telefono);
     _direccionController = TextEditingController(text: info.direccion);
     _rfcController = TextEditingController(text: info.rfc);
+
+    // If BusinessProvider loads asynchronously (it does), update controllers
+    // when the provider finishes loading to avoid showing default values
+    // and accidentally overwriting persisted data.
+    provider.addListener(_onBusinessProviderChanged);
   }
 
   @override
   void dispose() {
+    // Remove listener to avoid memory leaks
+    try {
+      context.read<BusinessProvider>().removeListener(
+        _onBusinessProviderChanged,
+      );
+    } catch (_) {}
+
     _nombreController.dispose();
     _razonController.dispose();
     _telefonoController.dispose();
     _direccionController.dispose();
     _rfcController.dispose();
     super.dispose();
+  }
+
+  void _onBusinessProviderChanged() {
+    final info = context.read<BusinessProvider>().info;
+    // Update controllers only if values differ to avoid interrupting edits
+    if (_nombreController.text != info.nombre) {
+      _nombreController.text = info.nombre;
+    }
+    if (_razonController.text != info.razonSocial) {
+      _razonController.text = info.razonSocial;
+    }
+    if (_telefonoController.text != info.telefono) {
+      _telefonoController.text = info.telefono;
+    }
+    if (_direccionController.text != info.direccion) {
+      _direccionController.text = info.direccion;
+    }
+    if (_rfcController.text != info.rfc) {
+      _rfcController.text = info.rfc;
+    }
   }
 
   @override

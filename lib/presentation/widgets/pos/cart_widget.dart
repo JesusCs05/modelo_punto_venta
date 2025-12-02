@@ -15,7 +15,61 @@ import 'package:intl/intl.dart'; // <<< AÑADE ESTA LÍNEA
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'package:printing/printing.dart';
+import '../../../services/printer_win32.dart';
+// dart:convert not needed after switching to safe bytes helper
 // --- FIN NUEVAS IMPORTACIONES ---
+
+// Encode text for ESC/POS printer using a CP1252-like mapping. This preserves
+// common Western European characters (accented letters, ñ, inverted
+// punctuation) while replacing unsupported runes with '?'. Also normalizes
+// the ellipsis to three dots.
+List<int> _encodeForPrinter(String input) {
+  if (input.isEmpty) return <int>[];
+  var s = input.replaceAll('…', '...');
+
+  // Small mapping for characters outside 0..255 that are common in receipts.
+  const Map<int, int> extraMap = {
+    0x20AC: 0x80, // Euro sign
+    0x201A: 0x82,
+    0x0192: 0x83,
+    0x201E: 0x84,
+    0x2026: 0x85,
+    0x2020: 0x86,
+    0x2021: 0x87,
+    0x02C6: 0x88,
+    0x2030: 0x89,
+    0x0160: 0x8A,
+    0x2039: 0x8B,
+    0x0152: 0x8C,
+    0x017D: 0x8E,
+    0x2018: 0x91,
+    0x2019: 0x92,
+    0x201C: 0x93,
+    0x201D: 0x94,
+    0x2022: 0x95,
+    0x2013: 0x96,
+    0x2014: 0x97,
+    0x02DC: 0x98,
+    0x2122: 0x99,
+    0x0161: 0x9A,
+    0x203A: 0x9B,
+    0x0153: 0x9C,
+    0x017E: 0x9E,
+    0x0178: 0x9F,
+  };
+
+  final out = <int>[];
+  for (final r in s.runes) {
+    if (r <= 0xFF) {
+      out.add(r);
+    } else if (extraMap.containsKey(r)) {
+      out.add(extraMap[r]!);
+    } else {
+      out.add(63); // '?'
+    }
+  }
+  return out;
+}
 
 // Función helper para manejar el proceso completo de cobro e impresión
 Future<void> procesarCobroCompleto(
@@ -79,35 +133,152 @@ Future<void> _imprimirTicketHelper(
   final items = cart.lastSaleItems;
   final total = cart.lastSaleTotal;
   final cajero = cart.lastSaleUser?.nombre ?? 'N/A';
-  final businessInfo = context.read<BusinessProvider>().info;
+  // Ensure business info is loaded from DB before printing (may be async)
+  final businessProvider = context.read<BusinessProvider>();
+  await businessProvider.load();
+  final businessInfo = businessProvider.info;
 
   if (items.isEmpty) {
     debugPrint("No hay items en la última venta para imprimir.");
     return;
   }
 
-  final Uint8List pdfData = await _generateTicketPdfHelper(
-    items,
-    total,
-    cajero,
-    businessInfo,
-    cart,
+  // Define page format for 58mm thermal roll
+  const double ticketWidthMm = 58.0;
+  const double marginMm = 3.0;
+
+  // Estimate dynamic ticket height based on content:
+  // base header + per-item height + footer + margins (all in mm)
+  const double headerMm =
+      45.0; // espacio para nombre, razón social, encabezados
+  const double perItemMm = 6.5; // estimación por línea de producto
+  const double footerMm = 40.0; // total, gracias, etc
+
+  final estimatedContentMm =
+      headerMm +
+      (items.length * perItemMm) +
+      footerMm +
+      10.0; // acolchonamiento
+
+  // Limit height to the physical roll length to avoid absurd sizes
+  const double maxRollLengthMm = 3276.0;
+  final ticketHeightMm = estimatedContentMm.clamp(0.0, maxRollLengthMm);
+
+  final pageFormat = PdfPageFormat(
+    ticketWidthMm * PdfPageFormat.mm,
+    ticketHeightMm * PdfPageFormat.mm,
+    marginAll: marginMm * PdfPageFormat.mm,
   );
 
+  // Generate ESC/POS bytes and send directly to USB printer (Windows)
   try {
-    await Printing.layoutPdf(
-      onLayout: (PdfPageFormat format) async => pdfData,
-      name: 'Ticket_Venta_${DateTime.now().millisecondsSinceEpoch}',
+    // Build ESC/POS raw bytes manually to avoid external package conflicts.
+    final List<int> bytes = [];
+
+    // Initialize printer
+    bytes.addAll([0x1B, 0x40]); // ESC @
+
+    // Centered business name
+    bytes.addAll([0x1B, 0x61, 0x01]); // ESC a 1 (center)
+    bytes.addAll(_encodeForPrinter(businessInfo.nombre + '\n'));
+    if (businessInfo.razonSocial.isNotEmpty) {
+      bytes.addAll(_encodeForPrinter(businessInfo.razonSocial + '\n'));
+    }
+    if (businessInfo.telefono.isNotEmpty) {
+      bytes.addAll(_encodeForPrinter('Tel: ${businessInfo.telefono}\n'));
+    }
+    bytes.addAll(_encodeForPrinter('Ticket de Venta\n'));
+    // Separator
+    bytes.addAll(_encodeForPrinter('--------------------------------\n'));
+
+    // Items: format columns manually. 58mm paper typically ~32-34 chars per line.
+    const int lineWidth = 32;
+    for (final item in items) {
+      final name = item.producto.nombre;
+      final qty = item.cantidad.toString();
+      final subtotal = NumberFormat.currency(
+        locale: 'es_MX',
+        symbol: '\$',
+      ).format(cart.getSubtotalForItem(item));
+
+      // Truncate name if too long
+      final maxNameLen = 18;
+      var displayName = name;
+      if (displayName.length > maxNameLen)
+        displayName = displayName.substring(0, maxNameLen - 1) + '…';
+
+      // right align qty and subtotal
+      final rightPart = qty.padLeft(3) + ' ' + subtotal.padLeft(9);
+      final leftPart = displayName;
+      final spaces = lineWidth - (leftPart.length + rightPart.length);
+      final line =
+          leftPart + (spaces > 0 ? ' ' * spaces : ' ') + rightPart + '\n';
+      bytes.addAll(_encodeForPrinter(line));
+    }
+
+    bytes.addAll(_encodeForPrinter('--------------------------------\n'));
+    final totalLine =
+        'TOTAL: ${NumberFormat.currency(locale: 'es_MX', symbol: '\$').format(total)}\n';
+    // Bold on
+    bytes.addAll([0x1B, 0x45, 0x01]);
+    bytes.addAll(_encodeForPrinter(totalLine));
+    // Bold off
+    bytes.addAll([0x1B, 0x45, 0x00]);
+
+    bytes.addAll(_encodeForPrinter('\nCajero: $cajero\n'));
+    bytes.addAll(
+      _encodeForPrinter(
+        'Fecha: ${DateFormat('dd/MM/yyyy HH:mm').format(DateTime.now())}\n',
+      ),
     );
-  } catch (e) {
-    debugPrint("Error al imprimir: $e");
+    bytes.addAll(_encodeForPrinter('\nGracias por su compra!\n'));
+    // Feed and cut
+    bytes.addAll([0x1B, 0x64, 0x03]); // ESC d 3 (feed 3 lines)
+    bytes.addAll([0x1D, 0x56, 0x00]); // GS V 0 (full cut)
+
+    final u8 = Uint8List.fromList(bytes);
+    final defaultPrinter = getDefaultPrinterName();
+    debugPrint('Sending ${u8.length} bytes to printer: $defaultPrinter');
+    final printed = await printRawToPrinter(
+      u8,
+      printerName: defaultPrinter,
+    ).timeout(const Duration(seconds: 8), onTimeout: () => false);
+    debugPrint('printRawToPrinter returned: $printed');
+    if (!printed) {
+      throw Exception('No se pudo enviar el ticket a la impresora');
+    }
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Error al imprimir: $e'),
-          backgroundColor: AppColors.accentCta,
-        ),
+        const SnackBar(content: Text('Ticket enviado a la impresora')),
       );
+    }
+  } catch (e) {
+    debugPrint("Error al imprimir ESC/POS: $e");
+    // Fallback: generate PDF and show print dialog
+    try {
+      final pdfData = await _generateTicketPdfHelper(
+        items,
+        total,
+        cajero,
+        businessInfo,
+        cart,
+        pageFormat: pageFormat,
+      );
+      await Printing.layoutPdf(
+        format: pageFormat,
+        onLayout: (PdfPageFormat format) async => pdfData,
+        name: 'Ticket_Venta_${DateTime.now().millisecondsSinceEpoch}',
+      );
+    } catch (e2) {
+      debugPrint('Fallback PDF print failed: $e2');
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error al imprimir: ${e.toString()}'),
+            backgroundColor: AppColors.accentCta,
+          ),
+        );
+      }
     }
   }
 }
@@ -118,41 +289,36 @@ Future<Uint8List> _generateTicketPdfHelper(
   double total,
   String cajero,
   dynamic businessInfo,
-  CartProvider cart,
-) async {
+  CartProvider cart, {
+  required PdfPageFormat pageFormat,
+}) async {
   final pdf = pw.Document();
   final currencyFormat = NumberFormat.currency(locale: 'es_MX', symbol: '\$');
-  const double ticketWidthPoints = 80 * (72 / 25.4);
-  const double marginPoints = 3 * (72 / 25.4);
 
   pdf.addPage(
     pw.Page(
-      pageFormat: const PdfPageFormat(
-        ticketWidthPoints,
-        double.infinity,
-        marginAll: marginPoints,
-      ),
+      pageFormat: pageFormat,
       build: (pw.Context context) {
         return pw.Column(
           crossAxisAlignment: pw.CrossAxisAlignment.start,
           children: [
             pw.Center(
               child: pw.Text(
-                (businessInfo?.nombre ?? 'Mi Negocio'),
+                businessInfo.nombre,
                 style: pw.TextStyle(
                   fontWeight: pw.FontWeight.bold,
                   fontSize: 14,
                 ),
               ),
             ),
-            if ((businessInfo?.razonSocial ?? '').isNotEmpty)
+            if (businessInfo.razonSocial.isNotEmpty)
               pw.Center(
                 child: pw.Text(
                   businessInfo.razonSocial,
                   style: const pw.TextStyle(fontSize: 9),
                 ),
               ),
-            if ((businessInfo?.telefono ?? '').isNotEmpty)
+            if (businessInfo.telefono.isNotEmpty)
               pw.Center(
                 child: pw.Text(
                   'Tel: ${businessInfo.telefono}',

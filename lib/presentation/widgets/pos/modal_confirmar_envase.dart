@@ -3,11 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 
 /// Define el resultado de la selección del modal.
-enum ConfirmacionEnvaseResultado {
-  siTraeEnvase,
-  noTraeEnvase,
-  cancelado
-}
+enum ConfirmacionEnvaseResultado { siTraeEnvase, noTraeEnvase, cancelado }
 
 /// Muestra el Pop-up para confirmar si el cliente trae el envase[cite: 186].
 /// Retorna un [ConfirmacionEnvaseResultado]
@@ -27,22 +23,24 @@ Future<ConfirmacionEnvaseResultado?> mostrarModalConfirmarEnvase(
           children: [
             Icon(Icons.recycling, color: AppColors.primary, size: 30),
             SizedBox(width: 12),
-            Text('Producto Retornable',
-                style: TextStyle(color: AppColors.textPrimary)),
+            Text(
+              'Producto Retornable',
+              style: TextStyle(color: AppColors.textPrimary),
+            ),
           ],
         ),
         // Texto: "¿El cliente entregó el envase retornable?" [cite: 190]
         content: Text(
           '¿El cliente entregó el envase vacío para "$nombreProducto"?',
-          style: const TextStyle(
-              color: AppColors.textPrimary, fontSize: 16),
+          style: const TextStyle(color: AppColors.textPrimary, fontSize: 16),
         ),
         actionsPadding: const EdgeInsets.all(16.0),
         actionsAlignment: MainAxisAlignment.spaceBetween,
         actions: <Widget>[
-          // Botones [cite: 191]
+          // Botones: usar tamaños fijos responsivos en lugar de Expanded
           // "SÍ (Solo cobrar líquido)"
-          Expanded(
+          SizedBox(
+            width: (MediaQuery.of(dialogContext).size.width - 96) / 2,
             child: _buildModalButton(
               context: dialogContext,
               label: 'SÍ (Solo Líquido)',
@@ -52,7 +50,8 @@ Future<ConfirmacionEnvaseResultado?> mostrarModalConfirmarEnvase(
           ),
           const SizedBox(width: 12),
           // "NO (Cobrar Envase)"
-          Expanded(
+          SizedBox(
+            width: (MediaQuery.of(dialogContext).size.width - 96) / 2,
             child: _buildModalButton(
               context: dialogContext,
               label: 'NO (Cobrar Envase)',
@@ -80,9 +79,7 @@ Widget _buildModalButton({
       style: ElevatedButton.styleFrom(
         backgroundColor: backgroundColor,
         foregroundColor: AppColors.textInverted, // #FFFFFF (Blanco)
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
       ),
       onPressed: () {
         Navigator.of(context).pop(result);

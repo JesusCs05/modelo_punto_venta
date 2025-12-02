@@ -1,5 +1,6 @@
 // Archivo: lib/main.dart
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:isar/isar.dart'; // 1. Import Isar
 import 'package:path_provider/path_provider.dart';
 // 2. Import ALL your collection schemas
@@ -13,6 +14,7 @@ import 'data/collections/turno.dart';
 import 'data/collections/movimiento_inventario.dart';
 import 'data/collections/negocio.dart';
 // --- End Collection Imports ---
+import 'data/models/business_info.dart';
 import 'presentation/screens/login_screen.dart';
 import 'package:window_manager/window_manager.dart';
 import 'presentation/services/window_close_service.dart';
@@ -33,6 +35,8 @@ final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Silence debug output in production/installer runs: disable debugPrint
+  debugPrint = (String? message, {int? wrapWidth}) {};
   // Inicializar window_manager (solo en desktop). Si falla, seguimos sin bloqueo nativo.
   try {
     await windowManager.ensureInitialized();
@@ -152,6 +156,19 @@ Future<void> _seedDatabase() async {
         TipoProducto()..nombre = 'Líquido',
         TipoProducto()..nombre = 'Envase',
       ]);
+    }
+
+    // 4. Ensure there is a negocio record (business info) in the DB
+    final existingNegocio = await isar.negocios.where().findFirst();
+    if (existingNegocio == null) {
+      final defaultInfo = BusinessInfo.defaultInfo();
+      final negocio = Negocio()
+        ..nombre = defaultInfo.nombre
+        ..razonSocial = defaultInfo.razonSocial
+        ..telefono = defaultInfo.telefono
+        ..direccion = defaultInfo.direccion
+        ..rfc = defaultInfo.rfc;
+      await isar.negocios.put(negocio);
     }
   });
   debugPrint("Isar database 'seeded' with roles, admin, and types.");
