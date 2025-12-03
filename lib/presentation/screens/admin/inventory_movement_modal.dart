@@ -49,6 +49,7 @@ class _InventoryMovementFormState extends State<_InventoryMovementForm> {
 
   List<Producto> _productosList = [];
   Id? _productoSeleccionadoID; // Id es int
+  final _skuController = TextEditingController();
   final _cantidadController = TextEditingController();
   bool _isLoading = true;
   String? _loadingError;
@@ -84,6 +85,7 @@ class _InventoryMovementFormState extends State<_InventoryMovementForm> {
 
   @override
   void dispose() {
+    _skuController.dispose();
     _cantidadController.dispose();
     super.dispose();
   }
@@ -218,6 +220,38 @@ class _InventoryMovementFormState extends State<_InventoryMovementForm> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // Campo para ingresar SKU y seleccionar automáticamente
+              TextFormField(
+                controller: _skuController,
+                decoration: InputDecoration(
+                  labelText: 'SKU del Producto',
+                  hintText: 'Escanee o escriba el SKU',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                ),
+                onChanged: (value) {
+                  if (value.trim().isEmpty) return;
+                  // Buscar por SKU exacto primero
+                  final prodExact = isar.productos
+                      .filter()
+                      .skuEqualTo(value.trim(), caseSensitive: false)
+                      .findFirstSync();
+                  Producto? seleccionado = prodExact;
+                  // Si no encontró exacto, buscar contains
+                  seleccionado ??= isar.productos
+                      .filter()
+                      .skuIsNotNull()
+                      .skuContains(value.trim(), caseSensitive: false)
+                      .findFirstSync();
+                  if (seleccionado != null) {
+                    setState(() {
+                      _productoSeleccionadoID = seleccionado!.id;
+                    });
+                  }
+                },
+              ),
+              const SizedBox(height: 12),
               // 1. Selector de Producto (adaptado a Isar Id)
               DropdownButtonFormField<Id>(
                 // FIX: Usar initialValue
@@ -242,6 +276,26 @@ class _InventoryMovementFormState extends State<_InventoryMovementForm> {
                 validator: (value) =>
                     value == null ? 'Seleccione un producto' : null,
               ),
+              const SizedBox(height: 8),
+              // Mostrar stock actual del producto seleccionado
+              Builder(
+                builder: (context) {
+                  if (_productoSeleccionadoID == null) {
+                    return const SizedBox.shrink();
+                  }
+                  final seleccionado = isar.productos.getSync(
+                    _productoSeleccionadoID!,
+                  );
+                  final stock = seleccionado?.stockActual ?? 0;
+                  return Align(
+                    alignment: Alignment.centerLeft,
+                    child: Text(
+                      'Stock actual: $stock',
+                      style: const TextStyle(color: Colors.grey, fontSize: 12),
+                    ),
+                  );
+                },
+              ),
               const SizedBox(height: 16),
 
               // 2. Cantidad (sin cambios lógicos)
@@ -249,7 +303,9 @@ class _InventoryMovementFormState extends State<_InventoryMovementForm> {
                 controller: _cantidadController,
                 decoration: InputDecoration(
                   labelText: 'Cantidad',
-                  hintText: 'Ej: 100 (Entrada) ó -5 (Merma)',
+                  hintText: widget.tipoMovimiento == 'Compra'
+                      ? 'Ej: 100 (Entrada)'
+                      : 'Ej: -5 (Merma) ó +10 (Ajuste)',
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(8),
                   ),
@@ -262,13 +318,18 @@ class _InventoryMovementFormState extends State<_InventoryMovementForm> {
                   final numero = int.tryParse(value);
                   if (numero == null) return 'Ingrese un número válido';
                   if (numero == 0) return 'La cantidad no puede ser cero';
+                  if (widget.tipoMovimiento == 'Compra' && numero < 0) {
+                    return 'En entradas (compra), use cantidad positiva';
+                  }
                   return null;
                 },
               ),
               const SizedBox(height: 10),
-              const Text(
-                'Nota: Ingrese un número positivo (+) para entradas o compras. Ingrese un número negativo (-) para salidas, mermas o robos.',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
+              Text(
+                widget.tipoMovimiento == 'Compra'
+                    ? 'Nota: Use número positivo (+) para entradas o compras.'
+                    : 'Nota: En ajuste puede usar positivo (+) o negativo (-).',
+                style: const TextStyle(fontSize: 12, color: Colors.grey),
               ),
             ],
           ),

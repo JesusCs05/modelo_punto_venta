@@ -9,7 +9,9 @@ import '../pos/modal_cobro.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/business_provider.dart';
 import 'modal_cerrar_turno.dart';
-import 'package:intl/intl.dart'; // <<< AÑADE ESTA LÍNEA
+import 'package:intl/intl.dart';
+import '../../screens/delivery_screen.dart';
+import '../../services/window_close_service.dart';
 
 // --- NUEVAS IMPORTACIONES PARA PDF Y PRINTING ---
 import 'package:pdf/pdf.dart';
@@ -888,13 +890,11 @@ class _CartActions extends StatelessWidget {
           SizedBox(
             height: 65,
             child: ElevatedButton(
-              // --- LÓGICA DE onPressed CORREGIDA ---
               onPressed: cart.total <= 0.0
                   ? null
                   : () async {
                       await procesarCobroCompleto(context, cart);
                     },
-              // --- FIN LÓGICA DE onPressed ---
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.accentCta,
                 foregroundColor: AppColors.textInverted,
@@ -931,6 +931,23 @@ class _CartActions extends StatelessWidget {
           ),
           const SizedBox(height: 20),
           const Divider(),
+          TextButton.icon(
+            icon: const Icon(Icons.delivery_dining, color: AppColors.primary),
+            label: const Text(
+              'Venta Domicilio',
+              style: TextStyle(color: AppColors.primary),
+            ),
+            onPressed: () async {
+              await Navigator.of(
+                context,
+              ).push(MaterialPageRoute(builder: (_) => const DeliveryScreen()));
+
+              // Restore window close protection state when returning
+              if (context.mounted) {
+                WindowCloseService.posScreenActive = true;
+              }
+            },
+          ),
           TextButton.icon(
             // Cerrar Turno
             icon: Icon(Icons.logout, color: AppColors.accentCta),

@@ -12,6 +12,7 @@ import 'data/collections/venta_detalle.dart';
 import 'data/collections/turno.dart';
 import 'data/collections/movimiento_inventario.dart';
 import 'data/collections/negocio.dart';
+import 'data/collections/gasto.dart'; // <-- Nueva importación
 // --- End Collection Imports ---
 import 'data/models/business_info.dart';
 import 'presentation/screens/login_screen.dart';
@@ -25,6 +26,7 @@ import 'package:provider/provider.dart';
 import 'presentation/providers/auth_provider.dart';
 import 'presentation/providers/turno_provider.dart';
 import 'presentation/providers/cart_provider.dart';
+import 'presentation/providers/delivery_cart_provider.dart';
 import 'presentation/providers/business_provider.dart';
 
 // 3. Global Isar instance (consider using Provider/GetIt later)
@@ -61,6 +63,7 @@ Future<void> main() async {
       TurnoSchema,
       MovimientoInventarioSchema,
       NegocioSchema,
+      GastoSchema, // <-- Agregar aquí el esquema de gastos
     ],
     directory: dir.path,
     name: 'posDepositoDB', // Name your database file
@@ -91,6 +94,13 @@ Future<void> main() async {
           // 'update' asegura que si AuthProvider cambiara, CartProvider se actualiza
           update: (context, auth, previousCart) =>
               CartProvider(authProvider: auth),
+        ),
+        // DeliveryCartProvider, también DEPENDE de AuthProvider
+        ChangeNotifierProxyProvider<AuthProvider, DeliveryCartProvider>(
+          create: (context) =>
+              DeliveryCartProvider(authProvider: context.read<AuthProvider>()),
+          update: (context, auth, previousCart) =>
+              DeliveryCartProvider(authProvider: auth),
         ),
         // --- FIN DE LA MODIFICACIÓN ---
       ],

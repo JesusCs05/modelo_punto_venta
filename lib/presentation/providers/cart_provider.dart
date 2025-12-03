@@ -16,8 +16,6 @@ class CartProvider with ChangeNotifier {
   final List<CartItem> _items = [];
   List<CartItem> get items => _items;
 
-  // --- INICIO DE LA MODIFICACIÓN (Paso 3) ---
-
   /// Calcula el subtotal para UN item del carrito, APLICANDO la lógica de promoción.
   double getSubtotalForItem(CartItem item) {
     final producto = item.producto;

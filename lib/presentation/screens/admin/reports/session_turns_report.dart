@@ -4,6 +4,8 @@ import 'package:intl/intl.dart';
 import 'package:isar/isar.dart';
 import '../../../../main.dart';
 import '../../../../data/collections/turno.dart';
+import '../../../../data/collections/venta.dart';
+import '../../../../data/collections/gasto.dart';
 import '../../../theme/app_colors.dart';
 
 class SessionTurnsReport extends StatefulWidget {
@@ -17,6 +19,55 @@ class _SessionTurnsReportState extends State<SessionTurnsReport> {
   List<Turno> _turnos = [];
   bool _isLoading = false;
   final _dateFormat = DateFormat('dd/MM/yyyy HH:mm');
+  final Map<int, int> _domicilioCounts = {};
+  final Map<int, double> _gastosPorTurno = {};
+
+  Widget _statTile({
+    required IconData icon,
+    required Color color,
+    required String label,
+    required String value,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      decoration: BoxDecoration(
+        color: color.withAlpha(15),
+        borderRadius: BorderRadius.circular(10),
+        border: Border.all(color: color.withAlpha(128)),
+      ),
+      child: Row(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: color.withAlpha(31),
+              shape: BoxShape.circle,
+            ),
+            padding: const EdgeInsets.all(6),
+            child: Icon(icon, size: 18, color: color),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(fontWeight: FontWeight.w600),
+            ),
+          ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: color.withAlpha(31),
+              border: Border.all(color: color),
+              borderRadius: BorderRadius.circular(8),
+            ),
+            child: Text(
+              value,
+              style: TextStyle(color: color, fontWeight: FontWeight.w700),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   @override
   void initState() {
@@ -31,6 +82,23 @@ class _SessionTurnsReportState extends State<SessionTurnsReport> {
     final all = await isar.turnos.where().findAll();
     // Ordenar por fechaInicio desc
     all.sort((a, b) => b.fechaInicio.compareTo(a.fechaInicio));
+    // Cargar usuario de cada turno, contar pedidos de domicilio y sumar gastos
+    for (final t in all) {
+      await t.usuario.load();
+      final start = t.fechaInicio;
+      final end = t.fechaFin ?? DateTime.now();
+      final count = await isar.ventas
+          .filter()
+          .metodoPagoEqualTo('Domicilio', caseSensitive: false)
+          .fechaHoraBetween(start, end, includeLower: true, includeUpper: true)
+          .count();
+      _domicilioCounts[t.id] = count;
+
+      // Sumar gastos del turno
+      final gastos = await isar.gastos.filter().turnoIdEqualTo(t.id).findAll();
+      final totalGastos = gastos.fold<double>(0, (sum, g) => sum + g.monto);
+      _gastosPorTurno[t.id] = totalGastos;
+    }
     setState(() {
       _turnos = all;
       _isLoading = false;
@@ -85,34 +153,118 @@ class _SessionTurnsReportState extends State<SessionTurnsReport> {
                             .toStringAsFixed(2);
                         final contado = (t.totalContadoEfectivo ?? 0)
                             .toStringAsFixed(2);
-                        final diferencia = (t.diferencia ?? 0).toStringAsFixed(
-                          2,
-                        );
-
-                        return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(
+                        final gastos = _gastosPorTurno[t.id] ?? 0.0;
+                        final gastosStr = gastos.toStringAsFixed(2);
+                        final diffVal = (t.diferencia ?? 0) - gastos;
+                        final diferencia = diffVal.toStringAsFixed(2);
+                        final Color diffColor = diffVal > 0
+                            ? AppColors.primary
+                            : diffVal < 0
+                            ? AppColors.accentCta
+                            : AppColors.secondary;
+                        final IconData diffIcon = diffVal > 0
+                            ? Icons.trending_up
+                            : diffVal < 0
+                            ? Icons.trending_down
+                            : Icons.horizontal_rule;
+                        final domicilioCount = _domicilioCounts[t.id] ?? 0;
+                        return ExpansionTile(
+                          tilePadding: const EdgeInsets.symmetric(
                             vertical: 8,
                             horizontal: 4,
                           ),
-                          title: Text(
-                            'Turno #${t.id} - $inicio → $fin',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          subtitle: Column(
+                          title: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const SizedBox(height: 6),
                               Text(
-                                'Fondo inicial: \$${t.fondoInicial.toStringAsFixed(2)}',
+                                'Turno #${t.id} - $inicio → $fin',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
+                              const SizedBox(height: 4),
                               Text(
-                                'Ventas (Efectivo): \$$ventasEfectivo  •  Ventas (Tarjeta): \$$ventasTarjeta',
+                                'Cajero: ${t.usuario.value?.nombre ?? 'Desconocido'}',
                               ),
-                              Text(
-                                'Contado físico: \$$contado  •  Diferencia: \$$diferencia',
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  Text('Contado físico: \$$contado  '),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8,
+                                      vertical: 4,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: diffColor.withAlpha(31),
+                                      border: Border.all(color: diffColor),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: Row(
+                                      mainAxisSize: MainAxisSize.min,
+                                      children: [
+                                        Icon(
+                                          diffIcon,
+                                          size: 16,
+                                          color: diffColor,
+                                        ),
+                                        const SizedBox(width: 4),
+                                        Text(
+                                          'Diferencia: \$$diferencia',
+                                          style: TextStyle(
+                                            color: diffColor,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                ],
                               ),
                             ],
                           ),
+                          childrenPadding: const EdgeInsets.only(
+                            left: 8,
+                            right: 8,
+                            bottom: 8,
+                          ),
+                          children: [
+                            const Divider(),
+                            _statTile(
+                              icon: Icons.savings_outlined,
+                              color: AppColors.secondary,
+                              label: 'Fondo inicial',
+                              value: '\$${t.fondoInicial.toStringAsFixed(2)}',
+                            ),
+                            const SizedBox(height: 8),
+                            _statTile(
+                              icon: Icons.payments,
+                              color: AppColors.primary,
+                              label: 'Ventas (Efectivo)',
+                              value: '\$$ventasEfectivo',
+                            ),
+                            const SizedBox(height: 8),
+                            _statTile(
+                              icon: Icons.credit_card,
+                              color: AppColors.highlight,
+                              label: 'Ventas (Tarjeta)',
+                              value: '\$$ventasTarjeta',
+                            ),
+                            const SizedBox(height: 8),
+                            _statTile(
+                              icon: Icons.money_off,
+                              color: AppColors.accentCta,
+                              label: 'Gastos',
+                              value: '\$$gastosStr',
+                            ),
+                            const SizedBox(height: 8),
+                            _statTile(
+                              icon: Icons.delivery_dining,
+                              color: AppColors.accentCta,
+                              label: 'Pedidos a domicilio',
+                              value: '$domicilioCount',
+                            ),
+                          ],
                         );
                       },
                     ),

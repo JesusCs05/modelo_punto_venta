@@ -1,69 +1,41 @@
-// Archivo: lib/presentation/screens/pos_screen.dart
+// Archivo: lib/presentation/screens/delivery_screen.dart
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:window_manager/window_manager.dart';
 import 'package:provider/provider.dart';
 import 'package:isar/isar.dart';
 import '../theme/app_colors.dart';
-import '../widgets/pos/catalog_widget.dart';
-import '../widgets/pos/cart_widget.dart';
+import '../widgets/delivery/delivery_catalog_widget.dart';
+import '../widgets/delivery/delivery_cart_widget.dart';
 import '../widgets/pos/modal_confirmar_envase.dart';
-import '../services/window_close_service.dart';
-import '../providers/cart_provider.dart';
+import '../providers/delivery_cart_provider.dart';
 import '../../main.dart';
 import '../../data/collections/producto.dart';
-import 'help_screen.dart';
 
-class PosScreen extends StatefulWidget {
-  const PosScreen({super.key});
+class DeliveryScreen extends StatefulWidget {
+  const DeliveryScreen({super.key});
 
   @override
-  State<PosScreen> createState() => _PosScreenState();
+  State<DeliveryScreen> createState() => _DeliveryScreenState();
 }
 
-class _PosScreenState extends State<PosScreen> {
+class _DeliveryScreenState extends State<DeliveryScreen> {
   String _barcode = '';
   Timer? _barcodeTimer;
   final FocusNode _screenFocusNode = FocusNode();
 
   @override
-  void initState() {
-    super.initState();
-
-    // Esta lógica es ESENCIAL y está CORRECTA
-    WindowCloseService.posScreenActive = true;
-    debugPrint('PosScreen active set to true');
-    // Evitar que el sistema cierre la ventana mientras estamos en POS
-    // (seteamos preventClose proactivamente para prevenir la carrera
-    // entre WM_CLOSE nativo y nuestro handler Dart).
-    windowManager.setPreventClose(true).catchError((e) {
-      debugPrint('Failed to setPreventClose(true): $e');
-    });
-  }
-
-  @override
   void dispose() {
     _barcodeTimer?.cancel();
     _screenFocusNode.dispose();
-    // Esta lógica es ESENCIAL y está CORRECTA
-    WindowCloseService.posScreenActive = false;
-    debugPrint('PosScreen active set to false');
-    // Liberar el bloqueo de cierre cuando salimos de POS
-    windowManager.setPreventClose(false).catchError((e) {
-      debugPrint('Failed to setPreventClose(false): $e');
-    });
     super.dispose();
   }
-
-  // --- 1. ELIMINAR EL MÉTODO _mostrarDialogoConfirmarSalida ---
-  // (La lógica ahora vive en main.dart)
 
   void _handleBarcodeKey(KeyEvent event) {
     if (event is KeyDownEvent) {
       final key = event.logicalKey;
 
-      // Ignorar teclas especiales que son parte de atajos
+      // Ignorar teclas especiales
       if (key == LogicalKeyboardKey.escape ||
           key == LogicalKeyboardKey.f1 ||
           key == LogicalKeyboardKey.shift ||
@@ -122,7 +94,7 @@ class _PosScreenState extends State<PosScreen> {
         .findFirstSync();
 
     if (producto != null && mounted) {
-      final cart = context.read<CartProvider>();
+      final cart = context.read<DeliveryCartProvider>();
       final existsInCart = cart.items.any(
         (it) => it.producto.id == producto!.id,
       );
@@ -204,7 +176,7 @@ class _PosScreenState extends State<PosScreen> {
         LogicalKeySet(LogicalKeyboardKey.equal):
             const _IncrementProductIntent(),
         LogicalKeySet(LogicalKeyboardKey.shift, LogicalKeyboardKey.equal):
-            const _IncrementProductIntent(), // Para el símbolo +
+            const _IncrementProductIntent(),
         LogicalKeySet(LogicalKeyboardKey.pageUp):
             const _IncrementProductIntent(),
         // Disminuir producto
@@ -212,9 +184,6 @@ class _PosScreenState extends State<PosScreen> {
             const _DecrementProductIntent(),
         LogicalKeySet(LogicalKeyboardKey.pageDown):
             const _DecrementProductIntent(),
-        // Cobrar
-        LogicalKeySet(LogicalKeyboardKey.f1): const _ChargeIntent(),
-        LogicalKeySet(LogicalKeyboardKey.enter): const _ChargeIntent(),
         // Cancelar venta
         LogicalKeySet(LogicalKeyboardKey.escape): const _CancelSaleIntent(),
       },
@@ -225,9 +194,6 @@ class _PosScreenState extends State<PosScreen> {
           ),
           _DecrementProductIntent: CallbackAction<_DecrementProductIntent>(
             onInvoke: (_) => _handleDecrementProduct(context),
-          ),
-          _ChargeIntent: CallbackAction<_ChargeIntent>(
-            onInvoke: (_) => _handleCharge(context),
           ),
           _CancelSaleIntent: CallbackAction<_CancelSaleIntent>(
             onInvoke: (_) => _handleCancelSale(context),
@@ -241,26 +207,22 @@ class _PosScreenState extends State<PosScreen> {
             return KeyEventResult.ignored;
           },
           child: Scaffold(
-            backgroundColor: AppColors.background,
+            backgroundColor: const Color(0xFFFFF3E0),
+            appBar: AppBar(
+              title: const Text('Venta a Domicilio (Sin Precios)'),
+              backgroundColor: Colors.orange,
+              foregroundColor: Colors.white,
+            ),
             body: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Expanded(flex: 2, child: CartWidget(key: cartWidgetKey)),
-                Expanded(flex: 3, child: CatalogWidget()),
+                Expanded(
+                  flex: 2,
+                  child: DeliveryCartWidget(key: deliveryCartWidgetKey),
+                ),
+                const Expanded(flex: 3, child: DeliveryCatalogWidget()),
               ],
             ),
-            // Botón de ayuda pequeño en la esquina inferior derecha
-            floatingActionButton: FloatingActionButton.small(
-              heroTag: 'pos_help_btn',
-              onPressed: () => Navigator.of(
-                context,
-              ).push(MaterialPageRoute(builder: (_) => const HelpScreen())),
-              tooltip: 'Ayuda',
-              backgroundColor: AppColors.primary,
-              foregroundColor: AppColors.textInverted,
-              child: const Icon(Icons.help_outline),
-            ),
-            floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
           ),
         ),
       ),
@@ -268,25 +230,22 @@ class _PosScreenState extends State<PosScreen> {
   }
 
   void _handleIncrementProduct(BuildContext context) {
-    (cartWidgetKey.currentState as dynamic)?.incrementSelected();
+    (deliveryCartWidgetKey.currentState as dynamic)?.incrementSelected();
   }
 
   void _handleDecrementProduct(BuildContext context) {
-    (cartWidgetKey.currentState as dynamic)?.decrementSelected();
-  }
-
-  Future<void> _handleCharge(BuildContext context) async {
-    final cart = context.read<CartProvider>();
-    if (cart.total <= 0.0) return;
-    await procesarCobroCompleto(context, cart);
+    (deliveryCartWidgetKey.currentState as dynamic)?.decrementSelected();
   }
 
   void _handleCancelSale(BuildContext context) {
-    final cart = context.read<CartProvider>();
-    if (cart.total <= 0.0) return;
+    final cart = context.read<DeliveryCartProvider>();
+    if (cart.items.isEmpty) return;
     cart.clearCart();
   }
 }
+
+// Global key para acceder al widget del carrito
+final GlobalKey deliveryCartWidgetKey = GlobalKey();
 
 // Intents para los atajos de teclado
 class _IncrementProductIntent extends Intent {
@@ -295,10 +254,6 @@ class _IncrementProductIntent extends Intent {
 
 class _DecrementProductIntent extends Intent {
   const _DecrementProductIntent();
-}
-
-class _ChargeIntent extends Intent {
-  const _ChargeIntent();
 }
 
 class _CancelSaleIntent extends Intent {

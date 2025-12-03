@@ -7,6 +7,7 @@ import 'package:modelo_venta/data/collections/usuario.dart';
 import 'package:provider/provider.dart';
 import '../../../main.dart'; // Para 'isar'
 import '../../../data/collections/venta.dart';
+import '../../../data/collections/gasto.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/turno_provider.dart';
 import '../../screens/login_screen.dart';
@@ -48,6 +49,7 @@ class _CerrarTurnoContenidoState extends State<_CerrarTurnoContenido> {
   double _fondoInicial = 0.0;
   double _ventasEfectivo = 0.0;
   double _ventasTarjeta = 0.0;
+  double _gastos = 0.0;
   double _totalEsperadoEfectivo = 0.0;
 
   final _conteoFisicoController = TextEditingController();
@@ -101,11 +103,24 @@ class _CerrarTurnoContenidoState extends State<_CerrarTurnoContenido> {
         }
       }
 
+      // 3. Calcular gastos del turno
+      final gastosDelTurno = await isar.gastos
+          .filter()
+          .turnoIdEqualTo(turno.id)
+          .findAll();
+
+      double totalGastos = 0.0;
+      for (final gasto in gastosDelTurno) {
+        totalGastos += gasto.monto;
+      }
+
       setState(() {
         _fondoInicial = turno.fondoInicial;
         _ventasEfectivo = ventasEfectivo;
         _ventasTarjeta = ventasTarjeta;
-        _totalEsperadoEfectivo = turno.fondoInicial + ventasEfectivo;
+        _gastos = totalGastos;
+        _totalEsperadoEfectivo =
+            turno.fondoInicial + ventasEfectivo - totalGastos;
         _isLoading = false;
         // Calcular diferencia inicial (con 0 contado)
         _calcularDiferencia();
@@ -265,6 +280,7 @@ class _CerrarTurnoContenidoState extends State<_CerrarTurnoContenido> {
               '(+) Ventas con Tarjeta:',
               _currencyFormat.format(_ventasTarjeta),
             ),
+            _buildRow('(-) Gastos:', _currencyFormat.format(_gastos)),
             const Divider(thickness: 1, height: 20),
             _buildRow(
               '(=) Total Esperado en Caja:',

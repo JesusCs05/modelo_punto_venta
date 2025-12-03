@@ -12,6 +12,9 @@ import '../../../main.dart';
 import '../../../data/collections/producto.dart';
 import '../../providers/cart_provider.dart';
 import 'modal_recibir_envases.dart';
+import '../../screens/caja/registrar_gasto_form.dart';
+import '../../providers/auth_provider.dart';
+import '../../providers/turno_provider.dart';
 
 class CatalogWidget extends StatefulWidget {
   const CatalogWidget({super.key});
@@ -106,13 +109,11 @@ class _CatalogWidgetState extends State<CatalogWidget> {
         .findFirstSync();
 
     // Si no encontró por SKU exacto, buscar con CONTAINS por si hay espacios o formato diferente
-    if (producto == null) {
-      producto = isar.productos
-          .filter()
-          .skuIsNotNull()
-          .skuContains(code, caseSensitive: false)
-          .findFirstSync();
-    }
+    producto ??= isar.productos
+        .filter()
+        .skuIsNotNull()
+        .skuContains(code, caseSensitive: false)
+        .findFirstSync();
 
     // Si aún no encontró, buscar por nombre
     if (producto == null) {
@@ -186,7 +187,92 @@ class _CatalogWidgetState extends State<CatalogWidget> {
         children: [
           _buildSearchBar(),
           const SizedBox(height: 16),
-          _buildReceiveBottlesButton(),
+          Row(
+            children: [
+              Expanded(
+                child: SizedBox(
+                  height: 60,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.recycling, size: 28),
+                    label: const Text(
+                      'RECIBIR ENVASES VACÍOS',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: () {
+                      mostrarModalRecibirEnvases(context);
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.primary,
+                      foregroundColor: AppColors.textInverted,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                child: SizedBox(
+                  height: 60,
+                  child: ElevatedButton.icon(
+                    icon: const Icon(Icons.receipt_long, size: 28),
+                    label: const Text(
+                      'REGISTRAR GASTO',
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    onPressed: () {
+                      final auth = context.read<AuthProvider>();
+                      final turnoProvider = context.read<TurnoProvider>();
+                      final usuarioId = auth.currentUserId ?? 0;
+                      final turnoId = turnoProvider.turnoActivoId ?? 0;
+
+                      if (turnoId == 0) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text(
+                              'No hay un turno activo. Por favor, inicie un turno primero.',
+                            ),
+                            backgroundColor: AppColors.accentCta,
+                          ),
+                        );
+                        return;
+                      }
+
+                      showDialog(
+                        context: context,
+                        builder: (ctx) => Dialog(
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: RegistrarGastoForm(
+                              turnoId: turnoId,
+                              usuarioId: usuarioId,
+                            ),
+                          ),
+                        ),
+                      );
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppColors.secondary,
+                      foregroundColor: AppColors.textInverted,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
           const SizedBox(height: 16),
           Expanded(
             child: StreamBuilder<void>(
@@ -324,28 +410,6 @@ class _CatalogWidgetState extends State<CatalogWidget> {
           // Procesar el escaneo cuando se presiona Enter manualmente
           await _procesarEscaneo(value.trim());
         },
-      ),
-    );
-  }
-
-  Widget _buildReceiveBottlesButton() {
-    return SizedBox(
-      width: double.infinity,
-      height: 60,
-      child: ElevatedButton.icon(
-        icon: const Icon(Icons.recycling, size: 28),
-        label: const Text(
-          'RECIBIR ENVASES VACÍOS',
-          style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-        ),
-        onPressed: () {
-          mostrarModalRecibirEnvases(context);
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.primary,
-          foregroundColor: AppColors.textInverted,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
       ),
     );
   }
