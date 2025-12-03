@@ -114,7 +114,9 @@ class InventoryAdminScreen extends StatelessWidget {
                   }
                   if (snapshot.hasError) {
                     return Center(
-                      child: Text('Error cargando movimientos: ${snapshot.error}'),
+                      child: Text(
+                        'Error cargando movimientos: ${snapshot.error}',
+                      ),
                     );
                   }
 
