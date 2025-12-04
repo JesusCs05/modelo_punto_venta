@@ -119,11 +119,16 @@ class _InventoryMovementCartScreenState
   Future<void> _saveAll() async {
     if (_lines.isEmpty) return;
     setState(() => _isSaving = true);
-    final auth = context.read<AuthProvider>();
+
+    // FIX: Capturar el context antes del gap asíncrono
+    final currentContext = context;
+
+    final auth = currentContext.read<AuthProvider>();
     final usuarioId = auth.currentUserId;
     if (usuarioId == null) {
       setState(() => _isSaving = false);
-      ScaffoldMessenger.of(context).showSnackBar(
+      if (!currentContext.mounted) return;
+      ScaffoldMessenger.of(currentContext).showSnackBar(
         const SnackBar(
           content: Text('Usuario no autenticado'),
           backgroundColor: AppColors.accentCta,
@@ -151,17 +156,18 @@ class _InventoryMovementCartScreenState
         }
       });
       setState(() => _isSaving = false);
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
+      if (currentContext.mounted) {
+        ScaffoldMessenger.of(currentContext).showSnackBar(
           const SnackBar(
             content: Text('Movimientos guardados'),
             backgroundColor: AppColors.primary,
           ),
         );
-        Navigator.of(context).pop();
+        Navigator.of(currentContext).pop();
       }
     } catch (e) {
       setState(() => _isSaving = false);
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Error al guardar: $e'),

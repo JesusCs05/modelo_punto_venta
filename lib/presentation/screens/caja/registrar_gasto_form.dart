@@ -111,8 +111,9 @@ class _RegistrarGastoFormState extends State<RegistrarGastoForm> {
                   border: OutlineInputBorder(),
                 ),
                 validator: (v) {
-                  if (v == null || v.trim().isEmpty)
+                  if (v == null || v.trim().isEmpty) {
                     return 'Ingrese una descripción';
+                  }
                   return null;
                 },
               ),

@@ -113,17 +113,17 @@ class AdminHelpScreen extends StatelessWidget {
                   children: const [
                     ListTile(
                       title: Text(
-                        'Crear o editar productos desde "Productos" en el panel de administración.',
+                        'Crea o edita productos desde "Productos" en el panel de administración.',
+                      ),
+                    ),
+                    ListTile(
+                      title: Text(
+                        'Filtra la lista por tipo de producto o usa el buscador para encontrar ítems por nombre o SKU.',
                       ),
                     ),
                     ListTile(
                       title: Text(
                         'Campos claves: SKU, nombre, precio y stock inicial.',
-                      ),
-                    ),
-                    ListTile(
-                      title: Text(
-                        'Usa promociones y precios especiales desde el formulario de producto.',
                       ),
                     ),
                   ],
@@ -134,7 +134,7 @@ class AdminHelpScreen extends StatelessWidget {
                     Icons.warehouse_outlined,
                     color: AppColors.primary,
                   ),
-                  title: const Text('Inventario'),
+                  title: const Text('Inventario (Kardex)'),
                   childrenPadding: const EdgeInsets.symmetric(
                     horizontal: 16.0,
                     vertical: 8.0,
@@ -142,12 +142,17 @@ class AdminHelpScreen extends StatelessWidget {
                   children: const [
                     ListTile(
                       title: Text(
-                        'Registra entradas y salidas para mantener el stock actualizado.',
+                        'El "Kardex" muestra todos los movimientos de inventario (ventas, compras, ajustes).',
                       ),
                     ),
                     ListTile(
                       title: Text(
-                        'Consulta movimientos para auditar cambios y detectar discrepancias.',
+                        'Usa los botones "Registrar Entrada" o "Registrar Ajuste" para modificar el stock de múltiples productos a la vez.',
+                      ),
+                    ),
+                    ListTile(
+                      title: Text(
+                        'Filtra los movimientos por rango de fechas, tipo de movimiento o busca por nombre de producto para una auditoría precisa.',
                       ),
                     ),
                   ],
@@ -166,12 +171,17 @@ class AdminHelpScreen extends StatelessWidget {
                   children: const [
                     ListTile(
                       title: Text(
-                        'Genera reportes de ventas, productos y movimientos desde "Reportes".',
+                        'La sección "Reportes" ahora incluye un reporte detallado por turnos de caja.',
                       ),
                     ),
                     ListTile(
                       title: Text(
-                        'Exporta o revisa datos periódicamente para decidir reabastecimientos.',
+                        'Analiza cada turno: fondo inicial, ventas por método de pago, gastos y la diferencia final.',
+                      ),
+                    ),
+                    ListTile(
+                      title: Text(
+                        'Filtra los turnos por diferencias (positivas, negativas o cero) o por tipo de actividad (ventas con tarjeta, gastos, etc.).',
                       ),
                     ),
                   ],
@@ -279,8 +289,17 @@ class AdminHelpScreen extends StatelessWidget {
                   children: const [
                     ListTile(
                       title: Text(
-                        'Para ayuda adicional, contacta al equipo de soporte o revisa la documentación del proyecto.',
+                        'Para ayuda adicional, contacta al equipo de soporte.',
                       ),
+                    ),
+                    // icono y texto de contacto
+                    ListTile(
+                      leading: Icon(Icons.email),
+                      title: Text('Correo: jesus514cauichsosa@gmail.com'),
+                    ),
+                    ListTile(
+                      leading: Icon(Icons.phone),
+                      title: Text('Teléfono: +52 999 529 3254'),
                     ),
                   ],
                 ),

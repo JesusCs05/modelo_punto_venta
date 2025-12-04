@@ -66,7 +66,7 @@ class ReportsScreen extends StatelessWidget {
                 ),
                 indicatorPadding: const EdgeInsets.symmetric(
                   vertical: 6,
-                  horizontal: 32,
+                  horizontal: 12,
                 ),
                 tabs: const [
                   Tab(text: 'Turnos', icon: Icon(Icons.schedule, size: 28)),

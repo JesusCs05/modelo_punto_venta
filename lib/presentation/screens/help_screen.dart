@@ -123,6 +123,32 @@ class HelpScreen extends StatelessWidget {
 
                   const SizedBox(height: 8),
                   ExpansionTile(
+                    leading: Icon(Icons.money_off, color: AppColors.primary),
+                    title: const Text('Registrar Gasto'),
+                    childrenPadding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
+                    children: [
+                      ListTile(
+                        leading: const Icon(Icons.add_card),
+                        title: const Text('¿Cuándo usarlo?'),
+                        subtitle: const Text(
+                          'Utiliza esta opción para registrar cualquier salida de dinero de la caja que no sea una venta (ej. pago a proveedores, servicios, etc.).',
+                        ),
+                      ),
+                      ListTile(
+                        leading: const Icon(Icons.receipt_long),
+                        title: const Text('Impacto en el Turno'),
+                        subtitle: const Text(
+                          'Los gastos se descuentan del total de efectivo esperado al cerrar el turno, ayudando a justificar diferencias.',
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  const SizedBox(height: 8),
+                  ExpansionTile(
                     leading: Icon(Icons.info_outline, color: AppColors.primary),
                     title: const Text('Más información'),
                     childrenPadding: const EdgeInsets.symmetric(
@@ -134,7 +160,7 @@ class HelpScreen extends StatelessWidget {
                         leading: const Icon(Icons.support_agent),
                         title: const Text('Soporte'),
                         subtitle: const Text(
-                          'Contacta al equipo de soporte para ayuda adicional.',
+                          'Contacta al administrador para ayuda adicional.',
                         ),
                       ),
                     ],
